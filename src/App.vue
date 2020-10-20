@@ -8,10 +8,10 @@
 </template>
 
 <style>
-html, body{
+html, body {
   margin: 0px;
-  height: 100%;
-  background: #fafafa;
+  height:100%;
+  background: #005d85 !important;
 }
 
 #app {
@@ -41,7 +41,7 @@ html, body{
   margin:10px;
   text-align:center;
   vertical-align: middle;
-  width:120px;
+  width:140px;
   border-radius:4px;
   border: 1px solid #586d89
 }
@@ -56,13 +56,19 @@ html, body{
   margin:5px;
 }
 
+#confirmationBox {
+    font-size: 20px;
+    color: #ffffff;
+    margin:10px auto 10px auto;
+}
+
 .disabledButton {
   background: #3a485a;
   display: inline-block;
   margin:10px;
   text-align:center;
   vertical-align: middle;
-  width:120px;
+  width:140px;
   border-radius:4px;
   border: 1px solid #586d89;
 }
@@ -88,6 +94,7 @@ html, body{
   margin-left:auto;
   margin-right:auto;
   display: none;
+  margin-top:5px;
 }
 
 .inputField {
@@ -122,7 +129,13 @@ input:focus {
  box-shadow: inset 0px 0px 4px 4px red;
 }
 
-#mainBox {
+.loading {
+  position:fixed;
+  left:49%;
+  top:49%;
+}
+
+.mainBox {
   border: 1px solid #FFFFFF;
   border-top-left-radius: 4px;
   border-top-right-radius: 4px;
@@ -135,25 +148,14 @@ input:focus {
   border-radius:4px;
 }
 
-#signInCancelButton {
-    background: #262f3b;
-    display: inline-block;
-    margin:10px;
-    text-align:center;
-    vertical-align: middle;
-    cursor:pointer;
-    width:120px;
-    border-radius:4px;
-    border: 1px solid #3a485a;  
-    color: #ffffff;
-    padding-top:5px;
-    padding-bottom: 5px;
-    text-decoration:none;
+#passwordSpec {
+  width:90%;
+  margin-left:auto;
+  margin-right:auto;
+  font-size:14px;
+  margin-top:5px
 }
 
-#signInCancelButton:hover {
-  background:#3a485a; 
-}
 .validInput {
   display:block;
   margin-top:-10px;
@@ -167,7 +169,7 @@ input:focus {
   border-radius: 4px;
 }
 
-#createAccount, #login, #forgotPasswordSection {
+.subBox {
   border: 1px solid #ffffff;
   border-top: none;
   margin: 10px;
@@ -178,7 +180,7 @@ input:focus {
 }
 
 @media only screen and (max-width: 635px){
-  #mainBox{
+  .mainBox{
     width:90%;
   }
 }

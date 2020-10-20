@@ -1,50 +1,46 @@
 <template>
   <div>
-    <div id="mainBox">
+    <div class="mainBox">
       <div id="headerBox">
         <p id="headerText">Create Account</p>
       </div>
-      <form id="createAccount">
-          <div class="inputField" style="margin-top:10px;">
-            <p class="inputLabel">First Name</p>
-            <input type="text" maxlength="45" class="validInput" name="fname" v-model="user.FirstName" @blur="validateFirstName()"/>
-          </div>
-          <div class="inputField">
-            <p class="inputLabel">Last Name</p>
-            <input type="text" maxlength="45" class="validInput" name="lname" v-model="user.LastName" @blur="validateLastName()"/>
-          </div>
-          <div class="inputField">
+      <form class="subBox">
+         <div class="inputField">
             <p class="inputLabel">Email Address</p>
             <input type="text" class="validInput" name="email" maxlength="65" v-model="user.EmailAddress" @blur="validateEmailAddress()"/>
             <div class="inputError" id="emailError">* Invalid Email Address</div>
+            <div class="inputError" id="emailUnavailableError">This email is already linked to an account.</div>
           </div>
           <div class="inputField">
             <p class="inputLabel">Username</p>
             <input type="text" class="validInput" name="username" maxlength="30" v-model="user.Username" @blur="validateUsername()"/>
-            <div class="inputError" id="usernameInputError">* Usernames can only use letters, numbers, underscores, and periods.</div>
-            <div class="inputError" id="usernameTakenError">* This username isn't available. Please try another.</div>
+            <div class="inputError" id="usernameInputError">Usernames can only use letters, numbers, underscores, and periods.</div>
+            <div class="inputError" id="usernameTakenError">This username isn't available. Please try another.</div>
           </div>
           <div class="inputField">
             <p class="inputLabel">Password</p>
             <input type="password" autocomplete="new-password" maxlength="70" class="validInput"  name="password" v-model="user.Password" @blur="validatePassword()"/>
-            <div class="inputError" id="passwordError">* Password must contain at least 8 characters, one uppercase letter, one lowercase letter, one digit, and one special character</div>
+            <div class="inputError" id="passwordError">Password must contain at least 6 characters: one uppercase letter, one lowercase letter, one digit, and one special character</div>
+            <div id="passwordSpec">Use a minimum of 6 characters (case sensitive) with at least one uppercase letter, one lowercase letter, one number, and one special character</div>
           </div>
           <div class="inputField">
             <p class="inputLabel">Confirm Password</p>
             <input type="password" autocomplete="new-password" maxlength="70" class="validInput" name="confirmPassword" v-model="confirmedPassword" @blur="validateConfirmPassword()"/>
-            <div class="inputError" id="passwordMatchError">* Passwords do not match</div>
+            <div class="inputError" id="passwordMatchError">Passwords do not match</div>
           </div>
         <div :class=isDisabled @click="validateCreationInfo()">
           <p class="buttonText">Sign Up</p>
         </div>
-        <router-link id="signInCancelButton" to="/">Cancel</router-link>
+        <div class=button @click="cancel()">
+          <p class="buttonText">Cancel</p>
+        </div>
       </form>
     </div>
+    <b-spinner variant="primary" class="loading" id="signUpSpinner" style="display:none"></b-spinner>
   </div>
 </template>
 
 <script>
-import Axios from 'axios'
 import { mapActions } from 'vuex'
 import { mapState } from 'vuex'
 
@@ -56,22 +52,17 @@ export default {
       validLoginPassword: false,
       validLoginUsername: false,
       originallyTypedUsername: "",
+      originallyTypedEmail: "",
       user: { 
         UserID: -1,
-        FirstName: "",
-        LastName: "",
         Username: "",
         Password: "",
         EmailAddress: ""
       },
-      validFirstName: false,
-      validLastName: false,
       validEmailAddress: false,
       validUsername: false,
       validPassword: false,
-      passwordsMatch: false,
-      clickedCreate: false,
-      firstClick: true
+      passwordsMatch: false
     }
   }, 
   computed: {
@@ -85,84 +76,67 @@ export default {
       }
     },
     ...mapState([
-      'usernameAvailable'
+      'usernameAvailable',
+      'emailAvailable'
     ])
   },
   methods: {
     ...mapActions([
-      'validateUsername'
+      'validateUsername',
+      'postNewUser',
+      'validateEmail'
     ]),
     async validateCreationInfo() {
       if (this.isDisabled == "button"){
-        this.clickedCreate = true;
-
-        if (this.firstClick) {
-          this.validateFirstName();
-          this.validateLastName();
-          this.validateEmailAddress();
-          this.validateUsername();
-          this.validatePassword();
-          this.validateConfirmPassword();
-        }
-
-        if (this.validFirstName && this.validLastName && this.validUsername &&
-            this.validPassword && this.validEmailAddress && this.passwordsMatch && 
+        this.validatePasswordMatch();
+        if (this.validUsername && this.validPassword && this.validEmailAddress && this.passwordsMatch && 
             this.usernameAvailable) {
-              await this.postNewUser()
-              this.confirmedPassword = "";
-              this.user.FirstName = "";
-              this.user.LastName = "";
-              this.user.EmailAddress = "";
-              this.user.Username = "";
-              this.user.Password = "";
-              this.$router.push("/");
-        }
-        this.firstClick = false;
-      }
-    },
-    validateFirstName() {
-      if (this.clickedCreate) {
-        let element = document.getElementsByName("fname")[0];
-        if (this.user.FirstName === "") {
-          this.validFirstName = false;
-          element.classList.add("invalidInput");
-          element.placeholder = " *Required Field";
-        } else {
-          this.validFirstName = true;
-          element.classList.remove("invalidInput");
+              let signUpSpinner = document.getElementById("signUpSpinner");
+              signUpSpinner.style.display = "inline-block";
+              await this.$store.dispatch('postNewUser', this.user);
+              signUpSpinner.style.display = "none";
+              this.clearForm();
+              this.$router.push("/"); //User Logged in go to main screen
         }
       }
     },
-    validateLastName() {
-      if (this.clickedCreate) {
-        let element = document.getElementsByName("lname")[0];
-        if (this.user.LastName === "") {
-          this.validLastName = false;
-          element.classList.add("invalidInput");
-          element.placeholder = " *Required Field";
-        } else {
-          this.validLastName = true;
-          element.classList.remove("invalidInput");
-        }
-      }
+    clearForm() {
+      this.user.EmailAddress = "";
+      this.user.Username = "";
+      this.user.Password = "";
+      this.confirmedPassword = "";
     },
-    validateEmailAddress() {
-      if (this.clickedCreate) {
-        let element = document.getElementsByName("email")[0];
-        let emailError = document.getElementById("emailError");
-        if (this.user.EmailAddress === "") {
-          this.validEmailAddress = false;
-          element.classList.add("invalidInput");
-          element.placeholder = " *Required Field";
-        } else if (/^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(this.user.EmailAddress)){
-          emailError.style.display = "none";
-          this.validEmailAddress = true;
-          element.classList.remove("invalidInput");
-        } else {
-          emailError.style.display = "block";
-          this.validEmailAddress = false;
-          element.classList.add("invalidInput");
+    cancel() {
+      this.clearForm();
+      this.$router.push("/");
+    },
+    async validateEmailAddress() {
+      let element = document.getElementsByName("email")[0];
+      let emailError = document.getElementById("emailError");
+      let emailUnavailableError = document.getElementById("emailUnavailableError");
+      if (this.user.EmailAddress === "") {
+        this.validEmailAddress = false;
+        element.classList.add("invalidInput");
+        element.placeholder = " Required Field";
+      } else if (/^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(this.user.EmailAddress)){
+        emailError.style.display = "none";
+        if(this.originallyTypedEmail != this.user.EmailAddress) {
+          await this.$store.dispatch('validateEmailAddress', this.user.EmailAddress);
+          if (this.emailAvailable){
+            element.classList.remove("invalidInput");
+            emailUnavailableError.style.display = "none";
+            this.validEmailAddress = true;
+          } else {
+            element.classList.add("invalidInput");
+            emailUnavailableError.style.display = "block";
+            this.validEmailAddress = false;  
+          }
+          this.originallyTypedEmail = this.user.EmailAddress;
         }
+      } else {
+        emailError.style.display = "block";
+        this.validEmailAddress = false;
+        element.classList.add("invalidInput");
       }
     },
     async validateUsername() {
@@ -170,57 +144,54 @@ export default {
       let inputError = document.getElementById("usernameInputError");
       let takenError = document.getElementById("usernameTakenError");
 
-      if (this.user.Username === "" && this.clickedCreate) {
+      if (this.user.Username === "") {
         this.validUsername = false;
         element.classList.add("invalidInput");
-        element.placeholder = " *Required Field";
+        element.placeholder = " Required Field";
       } else if (this.user.Username != "" && /(^[a-zA-Z0-9._]{1,30})+$/.test(this.user.Username)) {
         inputError.style.display = "none";
-        this.validUsername = true;
         if(this.originallyTypedUsername != this.user.Username){
-          await this.$store.dispatch('validateUsername', this.user.Username)
+          await this.$store.dispatch('validateUsername', this.user.Username);
           if (this.usernameAvailable){
             element.classList.remove("invalidInput");
             takenError.style.display = "none";
+            this.validUsername = true;
           } else {
             takenError.style.display = "block";
+            this.validUsername = false;
           }
           this.originallyTypedUsername = this.user.Username;
         }
-      } else {
+      } else if (this.user.Username != "") {
         inputError.style.display = "block";
         this.validUsername = false;
         element.classList.add("invalidInput");
       }
     },
     validatePassword() {
-      if (this.clickedCreate) {
-        let element = document.getElementsByName("password")[0];
-        let inputError = document.getElementById("passwordError")
-        if (this.user.Password === "") {
-          element.classList.add("invalidInput");
-          element.placeholder = " *Required Field";
-          this.validPassword = false;
-        } else if (/^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?'._+~`"!@$%^&*-]).{8,}$/.test(this.user.Password)) {
-          inputError.style.display = "none";
-          element.classList.remove("invalidInput");
-          this.validPassword = true;
-        } else {
-          inputError.style.display = "block";
-          element.classList.add("invalidInput");
-          this.validPassword = false;
-        }
+      let element = document.getElementsByName("password")[0];
+      let inputError = document.getElementById("passwordError")
+      if (this.user.Password === "") {
+        element.classList.add("invalidInput");
+        element.placeholder = " Required Field";
+        this.validPassword = false;
+      } else if (/^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?'._+~`"!@$%^&*-]).{8,}$/.test(this.user.Password)) {
+        inputError.style.display = "none";
+        element.classList.remove("invalidInput");
+        this.validPassword = true;
+      } else {
+        inputError.style.display = "block";
+        element.classList.add("invalidInput");
+        this.validPassword = false;
       }
     },
     validateConfirmPassword() {
-      if (this.clickedCreate) {
-        let element = document.getElementsByName("confirmPassword")[0];
-        if (this.confirmedPassword === "") {
-          element.classList.add("invalidInput");
-          element.placeholder = " *Required Field";
-        } else {
-          this.validatePasswordMatch();
-        }
+      let element = document.getElementsByName("confirmPassword")[0];
+      if (this.confirmedPassword === "") {
+        element.classList.add("invalidInput");
+        element.placeholder = " Required Field";
+      } else {
+        element.classList.remove("invalidInput");
       }
     },
     validatePasswordMatch() {
@@ -237,13 +208,6 @@ export default {
           matchError.style.display = "block";
           element.classList.add("invalidInput");
         }
-      }
-    },
-    async postNewUser() {
-      try {
-        await Axios.post("Users", this.user);
-      } catch(error) {
-        console.log(error);
       }
     }
   }
