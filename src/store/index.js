@@ -9,7 +9,8 @@ export default new Vuex.Store({
     usernameAvailable: false,
     user: {},
     token: null,
-    emailAvailable: false
+    emailAvailable: false,
+    loggedIn: false
   },  
   actions: {
     async login({commit}, credentials) {
@@ -17,6 +18,7 @@ export default new Vuex.Store({
         let result = await Axios.get(`Login?username=${credentials.username}&password=${credentials.password}`)
         commit('SET_TOKEN', result.data.token);
         commit('SET_USER', result.data.user);
+        commit('SET_LOGGED_IN_TRUE', true);
       } catch (error) {
         console.log(error);
       }
@@ -59,6 +61,9 @@ export default new Vuex.Store({
     },
     SET_TOKEN(state, token){
       state.token = token;
+    },
+    SET_LOGGED_IN_TRUE(state, loggedIn){
+      state.loggedIn = loggedIn;
     }
   }
 
