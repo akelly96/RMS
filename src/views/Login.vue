@@ -1,10 +1,10 @@
 <template>
-  <div>
+  <div v-if="!loggedIn">
     <div class="mainBox">
       <div id="headerBox">
         <p id="headerText">Log Into Recipe Management System</p>
       </div>
-      <form class="subBox">
+      <form class="subBox" @keyup.enter="login()">
         <div class="inputField" style="margin-top:10px;">
           <p class="inputLabel">Username</p>
           <input type="text" class="validInput" name="username" v-model="username" />
@@ -41,7 +41,8 @@ export default {
   },
   computed: {
     ...mapState ([
-      'token'
+      'token',
+      'loggedIn'
     ]),
     isDisabled() {
       if (this.username == '' || this.password.length < 8){
@@ -53,25 +54,32 @@ export default {
   },
   methods: {
     ...mapActions([
-      'login'
+      'login',
+      'getRecipeList'
     ]),
     async login() {
       if (this.isDisabled !== "disabledButton"){
           let loginSpinner = document.getElementById("loginSpinner");
           loginSpinner.style.display = "inline-block";
-          await this.$store.dispatch('login', {username: this.username, password: this.password})
-          loginSpinner.style.display = "none";
+          await this.$store.dispatch('login', {username: this.username, password: this.password});
           if (this.token)
           {
-            document.getElementById("invalidCredentialsError").style.display = "none";
             this.username = "";
             this.password = "";
-            // Go to main home screen!
+            await this.$store.dispatch('getRecipeList');
+            loginSpinner.style.display = "none";
+            this.$router.push("/home")
           } else {
+            loginSpinner.style.display = "none";
             document.getElementById("invalidCredentialsError").style.display = "block";
           }
       }
     } 
+  },
+  beforeMount() {
+    if (this.loggedIn) {
+      this.$router.push("/home");
+    }
   }
 }
 </script>

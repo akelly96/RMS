@@ -23,6 +23,16 @@ const routes = [
     path: '/resetpassword',
     name: 'ResetPassword',
     component: () => import('../views/ResetPassword.vue')
+  },
+  {
+    path: '/home',
+    name: 'Home',
+    component: () => import('../views/Home.vue')
+  },
+  {
+    path: '*',
+    name: 'PageNotFound',
+    component: () => import('../views/PageNotFound.vue')
   }
 ]
 

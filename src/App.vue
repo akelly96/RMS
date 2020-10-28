@@ -8,12 +8,12 @@
       <img class="logo" src="./assets/logo.png"/>
       <p id="topNavigationText">Recipe Management System</p>
       <p id="smallTopNavigationText">RMS</p>
-      <div class="navButtonContainer">
+      <router-link to="/home" class="navButtonContainer">
         <div class="navButtons">
           <img class="home" src="./assets/home.png"/>
           <p class="navButtonText">Home</p>
         </div>
-      </div>
+      </router-link>
       <div class="navButtonContainer">
         <div class="navButtons">
           <div class="addRecipe">+</div>
@@ -26,9 +26,13 @@
           <p class="navButtonText">Search</p>
         </div>
       </div>
-      <div id="hamburger">&#9776;</div>
+      <div id="hamburger" @click.stop="toggleMenuItemsDisplay">&#9776;</div>
+      <div id="hamburgerMenuContainer">
+        <div class="hamburgerMenu" @click="routeToAccountSettings">Account</div>
+        <div class="hamburgerMenu" @click="logOut">Log Out</div>
+      </div>
     </div>
-    <router-view id="view"/>
+    <router-view :id=getViewId />
     <div id="bottomNavigation" v-if="loggedIn">
       <div class="navButtonContainer">
         <div class="navButtons">
@@ -52,20 +56,51 @@
 
 <script>
 import { mapState } from 'vuex'
-
+import { mapMutations } from 'vuex'
 export default {
   name: 'Login',
   computed: {
     ...mapState([
       'loggedIn'
     ]),
-    headingTextID() {
-      if (this.loggedOut){
-        return "headingText"
+    getViewId() {
+      if (!this.loggedIn){
+        return "view"
       } else {
-        return "loggedInHeadingText"
+        return "viewLoggedIn"
       }
     }
+  },
+  methods: {
+     ...mapMutations([
+      'SET_LOGGED_OUT', 
+     ]),
+    toggleMenuItemsDisplay() {
+      let element = document.getElementById("hamburgerMenuContainer");
+      if (element.style.display == "none" || element.style.display == "")
+        element.style.display = "block";
+      else
+        element.style.display = "none";
+    },
+    hideMenuItems() {
+      if (this.loggedIn){
+        document.getElementById("hamburgerMenuContainer").style.display = "none";
+      }
+    },
+    logOut() {
+      this.$store.commit('SET_LOGGED_OUT');
+      sessionStorage.removeItem('vuex');
+      this.$router.push("/");
+    },
+    routeToAccountSettings() {
+      console.log("Route To Acount Settings Page")
+    }
+  },
+  beforeMount() {
+    document.addEventListener("click", this.hideMenuItems);
+  },
+  beforeDestroy() {
+    document.removeEventListener("click", this.hideMenuItems);
   }
 }
 </script>
@@ -167,6 +202,38 @@ html, body {
   color: #80b3f5;
 }
 
+.hamburgerMenu {
+  width:150px;
+  height:25px;
+  justify-content:center;
+  align-items:center;
+  display:flex;
+  background:lightgray;
+  cursor: pointer;
+}
+
+.hamburgerMenu:hover {
+  background:grey;
+}
+
+#hamburgerMenuContainer {
+  position:absolute;
+  right: 10px;
+  top:70px;
+  display:none;
+}
+
+#hamburgerMenuContainer div:first-of-type {
+  border-top-left-radius: 4px;
+  border-top-right-radius: 4px;
+  border-bottom:1px solid grey;
+}
+
+.hamburgerMenu:last-of-type {
+  border-bottom-left-radius: 4px;
+  border-bottom-right-radius: 4px;
+}
+
 #headerBox {
   border: 1px solid #ffffff;
   margin:10px;
@@ -180,6 +247,7 @@ html, body {
   color: #ffffff;
   font-size:25px;
   margin:10px;
+  overflow-wrap:break-word;
 }
 
 .home {
@@ -323,6 +391,10 @@ input:focus {
   align-items:center;
   margin-bottom:20px;
   background: #85001a;
+  position:fixed;
+  width:100%;
+  top:0;
+  z-index: 2;
 }
 
 #topNavigationText, #loggedOutHeaderText {
@@ -343,6 +415,10 @@ input:focus {
   margin-left:auto;
   margin-right:auto;
   border-radius: 4px;
+}
+
+#view, #viewLoggedIn {
+  padding-top: 98px;
 }
 
 @media only screen and (max-width: 850px){
@@ -379,9 +455,18 @@ input:focus {
   body{
     height: auto;
   }
-  #view {
-    margin-bottom:88px;
+  #viewLoggedIn {
+    padding-top:0px;
+    padding-bottom:30px;
+    margin-bottom:20px;
     overflow: scroll;
+  }
+  #view {
+    padding-top:130px;
+    margin-bottom:10px;
+  }
+  .button, .disabledButton {
+    width: 125px;
   }
 }
 </style>
