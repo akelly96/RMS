@@ -110,7 +110,7 @@ export default {
       }
     },
     goToLoginPage(){
-      this.$router.push("/");
+      this.$router.replace("/");
     }
   },
   async beforeMount() {

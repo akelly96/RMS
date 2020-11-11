@@ -15,9 +15,12 @@ export default new Vuex.Store({
     token: null,
     emailAvailable: false,
     loggedIn: false,
-    recipeList: {},
-    alphabeticalRecipeList: {},
-    reverseAlphabeticalRecipeList: {}
+    recipeList: [],
+    alphabeticalRecipeList: [],
+    reverseAlphabeticalRecipeList: [],
+    fullRecipes: [],
+    selectedRecipe: {},
+    validOldPassword: false
   },  
   actions: {
     async getRecipeList({commit, state}) {
@@ -54,12 +57,79 @@ export default new Vuex.Store({
         console.log(error);
       }
     },
+    async validateOldPassword({commit, state, dispatch}, oldPassword) {
+      try {
+        let result = await Axios.get("Login/ValidatePassword", {headers: {Authorization: `Bearer ${state.token}`}, params: {username: state.user.username, password: oldPassword}})
+        commit('SET_OLD_PASSWORD_VALID', result.data);
+      } catch (error) {
+        console.log(error);
+        await dispatch('refreshToken', {param: oldPassword, backTo: 'validateOldPassword'});
+      }
+    },
     async postNewUser({commit}, user) {
       try {
         let result = await Axios.post("Login", user);
         commit('SET_TOKEN', result.data.token);
         commit('SET_USER', result.data.user);
       } catch(error) {
+        console.log(error);
+      }
+    },
+    async getRecipeById({commit, state, dispatch}, id) {
+      let recipe = state.fullRecipes.find(x => x.recipeId == id);
+      if (recipe == null){
+        try {
+          let result = await Axios.get(`Recipes/${id}`, {headers: {Authorization: `Bearer ${state.token}`}})
+          commit('ADD_RECIPE_TO_LIST', result.data);
+          commit('SET_SELECTED_RECIPE', result.data);
+        } catch(error){
+          if (error.response.status === 401) {
+            await dispatch('refreshToken', { param: id, backTo: 'getRecipeById'});
+          }
+        }
+      } else {
+        commit('SET_SELECTED_RECIPE', recipe);
+      }
+    },
+    async updateUser({commit, dispatch, state}, params) {
+      if (params.save == "email") {
+        commit('SET_USER_EMAIL', params.email);
+      } else {
+        commit('SET_USER_USERNAME', params.username);
+      }
+
+      try {
+        await Axios.put(`Login/${state.user.userId}`, state.user, {headers: {Authorization: `Bearer ${state.token}`}});
+      } catch(error) {
+        if (error.response.status === 401) {
+          await dispatch('refreshToken', { param: params, backTo: 'updateUser'});
+        }
+      }
+    },
+    async changePassword({dispatch, state}, password) {
+      let user = {userId: state.user.userId, password: password}
+      try {
+        await Axios.put(`Login/ChangePassword/${state.user.userId}`, user, {headers: {Authorization: `Bearer ${state.token}`}});
+      } catch(error) {
+        if (error.response.status === 401) {
+          await dispatch('refreshToken', { param: password, backTo: 'changePassword'});
+        }
+      }
+    },
+    async refreshToken({commit, state, dispatch}, param){
+      try {
+        let result = await Axios.get("Login/RefreshToken", {params: {token: state.token}});
+        commit('SET_TOKEN', result.data.token)
+        if (param.backTo == "getRecipeById") {
+          await dispatch('getRecipeById', param.param);
+        } else if (param.backTo == "validateOldPassword") {
+          await dispatch('validateOldPassword', param.param);
+        } else if (param.backTo == 'updateUser') {
+          await dispatch('updateUser', param.param);
+        } else if (param.backTo == 'changePassword') {
+          await dispatch('changePassword', param.param);
+        }
+      }catch(error) {
         console.log(error);
       }
     }
@@ -81,6 +151,12 @@ export default new Vuex.Store({
     SET_USER(state, user){
       state.user = user;
     },
+    SET_USER_EMAIL(state, email) {
+      state.user.emailAddress = email;
+    },
+    SET_USER_USERNAME(state, username) {
+      state.user.username = username;
+    },
     SET_TOKEN(state, token){
       state.token = token;
     },
@@ -96,6 +172,18 @@ export default new Vuex.Store({
       state.recipeList = {};
       state.alphabeticalRecipeList = {};
       state.reverseAlphabeticalRecipeList = {};
+      state.selectedRecipe = {};
+      state.fullRecipes = [];
+    },
+    SET_SELECTED_RECIPE(state, recipe){
+      state.selectedRecipe = recipe;
+    },
+    SET_OLD_PASSWORD_VALID(state, valid) {
+      console.log(state.user);
+      state.validOldPassword = valid;
+    },
+    ADD_RECIPE_TO_LIST(state, recipe) {
+      state.fullRecipes.push(recipe);
     }
   }
 })

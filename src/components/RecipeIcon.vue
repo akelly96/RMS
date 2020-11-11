@@ -6,6 +6,7 @@
 </template>
 
 <script>
+import { mapActions } from 'vuex'
 export default {
     name:"recipeIcon",
     computed: {
@@ -51,9 +52,12 @@ export default {
         'recipe'
     ],
     methods: {
-        getRecipeById() {
-            console.log("Recipe API call for recipe: " + this.recipe.recipeId);
-            //call database to get single recipe
+        ...mapActions([
+            'getRecipeById'
+        ]),
+        async getRecipeById() {
+            await this.$store.dispatch('getRecipeById', this.recipe.recipeId)
+            this.$router.push("/recipe")
         }
     }
 }
@@ -82,6 +86,7 @@ export default {
     cursor:pointer;
     display:inline-block;
     transition-duration: 350ms;
+    vertical-align: middle;
 }
 
 .recipeIcon:hover {
@@ -118,10 +123,34 @@ export default {
         width:165px;
     }
     .recipeIcon {
-        height: 136px;
+        height: 141px;
     }
     #recipeImage {
-        height: 104px;
+        height: auto;
+    }
+}
+
+@media only screen and (max-width:375px) {
+    #recipeImage, #recipeName, .recipeIcon {
+        width:140px;
+    }
+    #recipeImage {
+        height: auto;
+    }
+    .recipeIcon {
+        height: 130px;
+    }
+}
+
+@media only screen and (max-width:330px) {
+    #recipeImage, #recipeName, .recipeIcon {
+        width:200px;
+    }
+    #recipeImage {
+        height: auto;
+    }
+    .recipeIcon {
+        height: 150px;
     }
 }
 </style>

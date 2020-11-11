@@ -30,6 +30,31 @@ const routes = [
     component: () => import('../views/Home.vue')
   },
   {
+    path: '/recipe',
+    name: 'Recipe',
+    component: () => import('../views/Recipe.vue')
+  },
+  {
+    path: '/search',
+    name: 'Search',  
+    component: () => import('../views/Search.vue')
+  },
+  {
+    path: '/account',
+    name: 'Account',
+    component: () => import('../views/Account.vue')
+  },
+  {
+    path: '/addrecipe',
+    name: 'AddRecipe',
+    component: () => import('../views/AddRecipe.vue')
+  },
+  {
+    path: '/editrecipe',
+    name: 'EditRecipe',
+    component: () => import('../views/EditRecipe.vue')
+  },
+  {
     path: '*',
     name: 'PageNotFound',
     component: () => import('../views/PageNotFound.vue')

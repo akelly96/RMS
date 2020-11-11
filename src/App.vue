@@ -3,6 +3,7 @@
     <div id="loggedOutHeader" v-if="!loggedIn">
       <img class="logo" src="./assets/logo.png"/>
       <p id="loggedOutHeaderText">Recipe Management System</p>
+      <p id="smallTopNavigationText">RMS</p>
     </div>
     <div id="topNavigation" v-if="loggedIn">
       <img class="logo" src="./assets/logo.png"/>
@@ -14,18 +15,18 @@
           <p class="navButtonText">Home</p>
         </div>
       </router-link>
-      <div class="navButtonContainer">
+      <router-link to="/addrecipe" class="navButtonContainer">
         <div class="navButtons">
           <div class="addRecipe">+</div>
           <p class="navButtonText">Add Recipe</p>
         </div>
-      </div>
-      <div class="navButtonContainer">
+      </router-link>
+      <router-link to="/search" class="navButtonContainer">
         <div class="navButtons">
           <img class="searchIcon" src="./assets/search.png"/>
           <p class="navButtonText">Search</p>
         </div>
-      </div>
+      </router-link>
       <div id="hamburger" @click.stop="toggleMenuItemsDisplay">&#9776;</div>
       <div id="hamburgerMenuContainer">
         <div class="hamburgerMenu" @click="routeToAccountSettings">Account</div>
@@ -34,21 +35,21 @@
     </div>
     <router-view :id=getViewId />
     <div id="bottomNavigation" v-if="loggedIn">
-      <div class="navButtonContainer">
+      <router-link to="/home" class="navButtonContainer">
         <div class="navButtons">
           <img class="home" src="./assets/home.png"/>
         </div>
-      </div>
-      <div class="navButtonContainer">
+      </router-link>
+      <router-link to="/addrecipe" class="navButtonContainer">
         <div class="navButtons">
           <div class="addRecipe">+</div>
         </div>
-      </div>
-      <div class="navButtonContainer">
+      </router-link>
+      <router-link to="/search" class="navButtonContainer">
         <div class="navButtons">
           <img class="searchIcon" src="./assets/search.png"/>
         </div>
-      </div>
+      </router-link>
       <div id="bottomHamburger">&#9776;</div>
     </div>
   </div>
@@ -58,7 +59,7 @@
 import { mapState } from 'vuex'
 import { mapMutations } from 'vuex'
 export default {
-  name: 'Login',
+  name: 'RecipeManagementSystem',
   computed: {
     ...mapState([
       'loggedIn'
@@ -93,15 +94,16 @@ export default {
       this.$router.push("/");
     },
     routeToAccountSettings() {
-      console.log("Route To Acount Settings Page")
+      this.$router.push("/account");
     }
+
   },
   beforeMount() {
     document.addEventListener("click", this.hideMenuItems);
   },
   beforeDestroy() {
     document.removeEventListener("click", this.hideMenuItems);
-  }
+  },
 }
 </script>
 
@@ -119,6 +121,11 @@ html, body {
   vertical-align:middle;
   margin-top:-10px;
   display:inline-block;
+}
+
+.allRecipesContainer {
+    margin: 30px auto 0 auto; 
+    width:1225px;
 }
 
 #app {
@@ -145,6 +152,7 @@ html, body {
   width:100%;
   bottom: 0;
   border-top: 1.8px solid #ffffff;
+  z-index: 2;
 }
 
 .button {
@@ -246,7 +254,7 @@ html, body {
 #headerText {
   color: #ffffff;
   font-size:25px;
-  margin:10px;
+  margin:5px;
   overflow-wrap:break-word;
 }
 
@@ -277,7 +285,6 @@ html, body {
 }
 
 .inputField p {
-  margin:1px;
   color:#808080;
   font-size:14px;
   display: inline-block;
@@ -428,7 +435,7 @@ input:focus {
 }
 
 @media only screen and (max-width: 670px){
-  #topNavigationText {
+  #topNavigationText, #loggedOutHeaderText {
     display: none;
   }
   #smallTopNavigationText {
@@ -446,27 +453,68 @@ input:focus {
   #bottomNavigation {
     display:flex;
   }
+
   #topNavigation {
     display: none;
   }
+
   .navButtonContainer {
     margin:auto;
   }
+
   body{
     height: auto;
   }
+
   #viewLoggedIn {
     padding-top:0px;
-    padding-bottom:30px;
+    padding-bottom:50px;
     margin-bottom:20px;
     overflow: scroll;
   }
+
   #view {
     padding-top:130px;
     margin-bottom:10px;
   }
+
   .button, .disabledButton {
     width: 125px;
+  }
+  
+  .allRecipesContainer {
+      margin-left:auto;
+  }
+}
+@media only screen and (max-width: 1250px){
+  .allRecipesContainer {
+    width: 980px;
+  }
+}
+@media only screen and (max-width: 1005px){
+  .allRecipesContainer {
+    width: 740px;
+  }
+}
+@media only screen and (max-width: 760px){
+  .allRecipesContainer {
+    width: 490px;
+  }
+}
+@media only screen and (max-width: 565px){
+  .allRecipesContainer {
+    width: 375px;
+  }
+}
+@media only screen and (max-width: 375px){
+  .allRecipesContainer {
+    width: 320px;
+  }
+}
+@media only screen and (max-width: 330px){
+  .allRecipesContainer {
+    width: 100%;
+    text-align:center;
   }
 }
 </style>

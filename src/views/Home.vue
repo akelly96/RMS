@@ -28,14 +28,14 @@
                 </div>
             </div>
         </div>
-        <div :style="{width: allRecipesWidth}" class="allRecipesContainer" v-else-if="selectedOption == 'Title: A-Z'">
+        <div class="allRecipesContainer" v-else-if="selectedOption == 'Title: A-Z'">
              <div class="allRecipes">
                     <RecipeIcon v-for="recipe in alphabeticalRecipeList" 
                     :key="recipe.RecipeId"
                     :recipe="recipe"></RecipeIcon>
             </div>
         </div>
-        <div :style="{width: allRecipesWidth}" class="allRecipesContainer" v-else>
+        <div class="allRecipesContainer" v-else>
              <div class="allRecipes">
                     <RecipeIcon v-for="recipe in reverseAlphabeticalRecipeList" 
                     :key="recipe.RecipeId"
@@ -82,9 +82,8 @@ export default {
             setTopOptions: false,
             isOpen: false,
             slideTimer: null,
-            scrollingLeft: [false, false, false, false, false, false, false, false, false, false, false, false, false],
-            scrollingRight: [false, false, false, false, false, false, false, false, false, false, false, false, false],
-            allRecipesWidth: '1225px'
+            scrollingLeft: Array(13).fill(false),
+            scrollingRight: Array(13).fill(false)
         }
     },
     methods: {
@@ -111,7 +110,6 @@ export default {
                 let content = document.getElementsByClassName("categories")[index];
                 let scrollAmount = 0;
                 let width = this.getWidth()
-                console.log(width)
                 let scrollDistance = this.getScrollDistance();
                 let slideTimer = setInterval(function(){
                     content.scrollLeft += scrollDistance;
@@ -128,19 +126,6 @@ export default {
         },
         setScrollingLeftFalse(index) {
             this.scrollingLeft[index] = false;
-        },
-        setAllRecipesWidth() {
-            let innerWidth = window.innerWidth;
-            if (innerWidth > 1250)
-                this.allRecipesWidth = '1225px';
-            else if (innerWidth > 1005)
-                this.allRecipesWidth = '980px'
-            else if (innerWidth > 760)
-                this.allRecipesWidth = '735px';
-            else if (innerWidth > 565)
-                this.allRecipesWidth = '490px';
-            else
-                this.allRecipesWidth = '375px';
         },
         getWidth() {
             let innerWidth = window.innerWidth;
@@ -187,7 +172,6 @@ export default {
             }
         },
         getScrollDistance() {
-            console.log(window.innerWidth)
             if (window.innerWidth > 565) {
                 return 35;
             }
@@ -249,10 +233,11 @@ export default {
             }
         },
         goToCreateRecipe() {
-            console.log("Mock Transfer to Create Recipe Page")
+            this.$router.push("/addrecipe");
         }
     },
     beforeMount() {
+        window.scrollTo(0,0);
         if (this.loggedIn)
         {
             if (this.recipeList.length > 0){
@@ -267,22 +252,15 @@ export default {
         } else {
             this.$router.replace("/");
         }
-        window.addEventListener("click", this.closeSelectOptions);
-        window.addEventListener("resize", this.setAllRecipesWidth);        
+        window.addEventListener("click", this.closeSelectOptions);      
     },
     beforeDestory() {
         window.removeEventListener("click", this.closeSelectOptions);
-        window.removeEventListener("resize", this.setAllRecipesWidth);
     }
 }
 </script>
 
 <style scoped>
-
-.allRecipesContainer {
-    margin: 30px auto 0 auto; 
-}
-
 #categoryName {
     font-size:20px;
     color: #ffffff;
@@ -446,9 +424,6 @@ html {
     }
     .selectedItem, .selectOption {
         right:unset;
-    }
-    .allRecipesContainer {
-        margin-left:auto;
     }
     .button {
         width:auto;

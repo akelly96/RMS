@@ -90,7 +90,6 @@ export default {
         }
     },
     cancel() {
-        console.log("here")
         this.EmailAddress = "";
         this.$router.push("/");
     }
