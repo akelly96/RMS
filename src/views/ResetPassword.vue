@@ -45,7 +45,8 @@ export default {
         passwordsMatch: false,
         passwordReset: false,
         expiredToken: false,
-        tokenValidated: false
+        tokenValidated: false,
+        baseURL: "https://localhost:44325/api/"
     }
   },
   methods: {
@@ -58,7 +59,7 @@ export default {
         {
           try {
               spinner.style.display = "inline-block";
-              await Axios.put(`ResetPassword?token=${this.token}&password=${this.password}`, {}, {headers: {Authorization: `Bearer ${this.token}`}});
+              await Axios.put(`${this.baseURL}ResetPassword?token=${this.token}&password=${this.password}`, {}, {headers: {Authorization: `Bearer ${this.token}`}});
               spinner.style.display = "none"
               this.passwordReset = true;
           } catch(error) {
@@ -120,7 +121,7 @@ export default {
     }
     if (this.token != null) {
         try {
-            let result = await Axios.get("ResetPassword/validateToken", { params: { token : this.token }, headers: { Authorization: `Bearer ${this.token}` }});
+            let result = await Axios.get(`${this.baseURL}ResetPassword/validateToken`, { params: { token : this.token }, headers: { Authorization: `Bearer ${this.token}` }});
             if (!result.data)
             {
               this.passwordReset = true;

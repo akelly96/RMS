@@ -77,6 +77,7 @@ export default {
     } 
   },
   beforeMount() {
+    window.scroll(0, 0);
     if (this.loggedIn) {
       this.$router.push("/home");
     }

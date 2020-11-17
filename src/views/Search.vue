@@ -65,6 +65,7 @@ export default {
     border-radius:4px;
     width:300px;
     border: none;
+    background: #e7e6e6;
 }
 
 #searchBarContainer {

@@ -1,21 +1,38 @@
 <template>
     <div v-if="loggedIn">
-        <div id="buttonContainer">
+        <div id="buttonContainer" v-if="windowWidth > 515">
             <div class="button" id="back" @click="goBack">
-                <p class="buttonText">GO BACK</p>
+                <p class="buttonText" >GO BACK</p>
             </div>
-            
+            <div id="right">
+                <div class="button" id="delete" @click="deleteRecipe">
+                    <p class="buttonText">DELETE RECIPE</p>
+                </div>
+                <div class="button" id="edit" @click="goToEditRecipe">
+                    <p class="buttonText">EDIT RECIPE</p>
+                </div>
+            </div>
+        </div>
+        <div id="buttonContainer" v-else>
+            <div class="button" id="back" @click="goBack">
+                <p class="buttonText">BACK</p>
+            </div>
+            <div class="button" id="delete" @click="deleteRecipe">
+                <p class="buttonText">DELETE</p>
+            </div>
             <div class="button" id="edit" @click="goToEditRecipe">
-                <p class="buttonText">EDIT RECIPE</p>
+                <p class="buttonText">EDIT</p>
             </div>
         </div>
         <div id="leftSide">
-            <div id="recipeNameContainer" style="margin-top:60px;" v-if="containersRelative">
+            <div id="recipeNameContainer" v-if="containersRelative">
                 <p id="recipeName">{{selectedRecipe.recipeName}}</p>
             </div>
-            <div id=imageContainer>
-                <img :src=selectedRecipe.imageURL id="image" v-if="selectedRecipe.imageURL != 'string'"/>
-                <img :src=getImage id="image" v-else />
+            <div>
+                <div id="imageContainer">
+                    <img :src=selectedRecipe.imageURL id="image" v-if="selectedRecipe.imageURL != ''"/>
+                    <img :src=getImage id="image" v-else />
+                </div>
             </div>
             <div id="notesContainer">
                 <p class="containerHeader">Notes</p>
@@ -42,6 +59,7 @@
 
 <script>
     import { mapState } from 'vuex'
+    import { mapActions } from 'vuex'
     export default {
         name: "recipe",
         computed: {
@@ -84,10 +102,25 @@
         },
         data: function() {
             return {
-                containersRelative: false
+                containersRelative: false,
+                windowWidth: 0
             }
         },
         methods: {
+            ...mapActions([
+                'deleteRecipe',
+                'displaySuccessErrorMessage'
+            ]),
+            async deleteRecipe() {
+                let answer = window.confirm("Are you sure you wish to delete this recipe?")
+                if (answer) {
+                    let success = await this.$store.dispatch('deleteRecipe', this.selectedRecipe.recipeId);
+                    if (success) {
+                        this.$store.dispatch('displaySuccessErrorMessage', {message: "Recipe Deleted", success: true});
+                        this.$router.replace("/home");
+                    }
+                }
+            },
             goToEditRecipe() {
                 this.$router.push('/editrecipe');
             },
@@ -95,6 +128,7 @@
                 this.$router.back();
             },
             setContainersRelative() {
+                this.windowWidth = window.innerWidth;
                 if (window.innerWidth > 885){
                     this.containersRelative = false;
                 } else {
@@ -143,26 +177,29 @@
         padding:5px;
     }
 
-    #edit {
+    #right {
         position:absolute;
         right:10px;
     }
 
-    #image {
-        width:100%;
-        height:auto;
-    }
-
     #imageContainer {
-        padding:10px;
-        width:90%;
-        text-align:center;
+        max-width: 90%;
+        height:calc(100vw * .33 * .95 * .631);
+        padding: 10px 10px 0 10px;
+        border-bottom: 10px solid #85001a;
         background: #85001a;
-        display:flex;
-        justify-content: center;
-        align-items: center;
+        overflow: hidden;
         margin: 10px auto 10px 20px;
-        border-radius:4px;
+        border-radius: 4px;
+    }
+    
+    #imageContainer img {
+        min-width:100%;
+        max-width:100%;
+        -webkit-user-drag: none;
+        -khtml-user-drag: none;
+        -moz-user-drag: none;
+        -o-user-drag: none;
     }
 
     #ingredientsContainer, #instructionsContainer {
@@ -251,12 +288,32 @@
         top:unset;
     }
 
-    #notesContainer, #recipeNameContainer, #ingredientsContainer, #instructionsContainer {
+    #notesContainer, #ingredientsContainer, #instructionsContainer, #imageContainer {
         margin: 10px auto 10px auto;
     }
 
+    #recipeNameContainer {
+        margin: 60px auto 10px auto;
+    }
+
     #imageContainer{
-        display:none;
+        height: calc(100vw * .9 * .631);
+    }
+}
+
+@media only screen and (max-width: 515px) {
+    #back {
+        position:relative;
+        left:auto;
+    }
+    #back, #edit, #delete {
+        margin: 10px auto 10px auto;
+    }
+    .button {
+        width: 90px;
+    }
+    #recipeNameContainer {
+        margin: 0 auto 10px auto;
     }
 }
 

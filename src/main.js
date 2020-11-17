@@ -7,7 +7,6 @@ import {BootstrapVue} from 'bootstrap-vue'
 
 // add these before Vue is instantiated
 window.axios = axios
-axios.defaults.baseURL = "https://localhost:44325/api/"
 Vue.config.productionTip = false
 
 Vue.use(BootstrapVue)

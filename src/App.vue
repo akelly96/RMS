@@ -9,29 +9,34 @@
       <img class="logo" src="./assets/logo.png"/>
       <p id="topNavigationText">Recipe Management System</p>
       <p id="smallTopNavigationText">RMS</p>
-      <router-link to="/home" class="navButtonContainer">
+      <div v-if="topRoutersVisible" style="display:flex;">
+        <router-link to="/home" class="navButtonContainer">
         <div class="navButtons">
           <img class="home" src="./assets/home.png"/>
           <p class="navButtonText">Home</p>
         </div>
-      </router-link>
-      <router-link to="/addrecipe" class="navButtonContainer">
-        <div class="navButtons">
-          <div class="addRecipe">+</div>
-          <p class="navButtonText">Add Recipe</p>
-        </div>
-      </router-link>
-      <router-link to="/search" class="navButtonContainer">
-        <div class="navButtons">
-          <img class="searchIcon" src="./assets/search.png"/>
-          <p class="navButtonText">Search</p>
-        </div>
-      </router-link>
+        </router-link>
+        <router-link to="/addrecipe" class="navButtonContainer">
+          <div class="navButtons">
+            <div class="addRecipe">+</div>
+            <p class="navButtonText">Add Recipe</p>
+          </div>
+        </router-link>
+        <router-link to="/search" class="navButtonContainer">
+          <div class="navButtons">
+            <img class="searchIcon" src="./assets/search.png"/>
+            <p class="navButtonText">Search</p>
+          </div>
+        </router-link>
+      </div>
       <div id="hamburger" @click.stop="toggleMenuItemsDisplay">&#9776;</div>
       <div id="hamburgerMenuContainer">
         <div class="hamburgerMenu" @click="routeToAccountSettings">Account</div>
         <div class="hamburgerMenu" @click="logOut">Log Out</div>
       </div>
+    </div>
+    <div id="successErrorMessageContainer">
+      <p :id="success? 'successMessage' : 'errorMessage'"><b>{{successErrorMessage}}</b></p>
     </div>
     <router-view :id=getViewId />
     <div id="bottomNavigation" v-if="loggedIn">
@@ -50,7 +55,6 @@
           <img class="searchIcon" src="./assets/search.png"/>
         </div>
       </router-link>
-      <div id="bottomHamburger">&#9776;</div>
     </div>
   </div>
 </template>
@@ -62,7 +66,10 @@ export default {
   name: 'RecipeManagementSystem',
   computed: {
     ...mapState([
-      'loggedIn'
+      'loggedIn',
+      'successErrorMessage',
+      'success',
+      'trigger'
     ]),
     getViewId() {
       if (!this.loggedIn){
@@ -70,6 +77,21 @@ export default {
       } else {
         return "viewLoggedIn"
       }
+    }
+  },
+  data: function() {
+    return {
+      topRoutersVisible: true,
+      timeout: 0
+    }
+  },
+  watch: {
+    trigger: function() {
+      document.getElementById("successErrorMessageContainer").style.height = '40px';
+      clearTimeout(this.timeout);
+      this.timeout = setTimeout(() => {
+         document.getElementById("successErrorMessageContainer").style.height= '0px';
+      }, 2000)
     }
   },
   methods: {
@@ -95,15 +117,31 @@ export default {
     },
     routeToAccountSettings() {
       this.$router.push("/account");
+    },
+    setRouterVisibility() {
+      if (window.innerWidth > 415) {
+        this.topRoutersVisible = true;
+      } else {
+        this.topRoutersVisible = false;
+      }
+    },
+    handler(e) {
+      e = e || event;
+      e.preventDefault();
     }
-
   },
   beforeMount() {
     document.addEventListener("click", this.hideMenuItems);
+    window.addEventListener("resize", this.setRouterVisibility);
+    window.addEventListener("dragover",this.handler, false);
+    window.addEventListener("drop", this.handler, false);
   },
   beforeDestroy() {
     document.removeEventListener("click", this.hideMenuItems);
-  },
+    window.removeEventListener("resize", this.setRouterVisibility);
+    window.removeEventListener("dragover",this.handler, false);
+    window.removeEventListener("drop", this.handler, false);
+  }
 }
 </script>
 
@@ -134,13 +172,6 @@ html, body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
-}
-
-#bottomHamburger {
-  color:#ffffff;
-  font-size: 30px;
-  cursor: pointer;
-  margin:auto;
 }
 
 #bottomNavigation {
@@ -193,11 +224,14 @@ html, body {
   border: 1px solid #586d89;
 }
 
+#errorMessage {
+  color: #FF0000;
+}
+
 #hamburger {
   color:#ffffff;
   font-size: 30px;
   position:absolute;
-  top: 5px;
   right: 10px;
   cursor: pointer;
   margin-left:10px;
@@ -274,7 +308,7 @@ html, body {
 }
 
 .inputField {
-  background: #ffffff;
+  background: #e7e6e6;
   text-align: left;
   border-radius:4px;
   width:90%;
@@ -289,7 +323,7 @@ html, body {
   font-size:14px;
   display: inline-block;
   margin-bottom: -10px;
-  background: white;
+  background: #e7e6e6;
   padding-left:4px;
   padding-right:4px;
   margin-left:35px;
@@ -301,7 +335,8 @@ input:focus {
 }
 
 .invalidInput {
- box-shadow: inset 0px 0px 4px 4px red;
+  box-shadow: inset 0px 0px 4px 4px red;
+  background: #e7e6e6;
 }
 
 .loading {
@@ -382,7 +417,29 @@ input:focus {
   font-size:30px;
   margin:0px;
 }
+#successErrorMessageContainer {
+  height:0px;
+  width:100%;
+  top:90px;
+  z-index:2;
+  text-align:center;
+  position: fixed;
+  vertical-align: middle;
+  border-bottom-left-radius:4px;
+  border-bottom-right-radius:4px;
+  background: #00415d;
+  transition: 300ms;
+  overflow:hidden;
+}
 
+#successMessage, #errorMessage {
+  margin:0px;
+  font-size:25px;
+}
+
+#successMessage {
+  color: #00e600;
+}
 .subBox {
   border: 1px solid #ffffff;
   border-top: none;
@@ -411,11 +468,12 @@ input:focus {
   font-size:30px;
   margin:0px;
 }
+
 .validInput {
   display:block;
   margin-top:-10px;
   height:35px;
-  background: #ffffff;
+  background: #e7e6e6;
   border: 1px solid black;
   width:90%;
   padding-left:5px;
@@ -454,10 +512,6 @@ input:focus {
     display:flex;
   }
 
-  #topNavigation {
-    display: none;
-  }
-
   .navButtonContainer {
     margin:auto;
   }
@@ -467,14 +521,14 @@ input:focus {
   }
 
   #viewLoggedIn {
-    padding-top:0px;
+    padding-top:100px;
     padding-bottom:50px;
     margin-bottom:20px;
     overflow: scroll;
   }
 
   #view {
-    padding-top:130px;
+    padding-top:100px;
     margin-bottom:10px;
   }
 
@@ -486,35 +540,50 @@ input:focus {
       margin-left:auto;
   }
 }
+
 @media only screen and (max-width: 1250px){
   .allRecipesContainer {
     width: 980px;
   }
 }
+
 @media only screen and (max-width: 1005px){
   .allRecipesContainer {
     width: 740px;
   }
 }
+
 @media only screen and (max-width: 760px){
   .allRecipesContainer {
     width: 490px;
   }
 }
+
 @media only screen and (max-width: 565px){
   .allRecipesContainer {
     width: 375px;
   }
 }
+
 @media only screen and (max-width: 375px){
   .allRecipesContainer {
     width: 320px;
   }
 }
+
 @media only screen and (max-width: 330px){
   .allRecipesContainer {
     width: 100%;
     text-align:center;
+  }
+}
+
+@media only screen and (max-height: 400px) {
+  .logo {
+    width:60px;
+  }
+  #successErrorMessageContainer {
+    top:80px;
   }
 }
 </style>

@@ -1,7 +1,10 @@
 <template>
     <div class="recipeIcon" @click="getRecipeById">
-        <img id="recipeImage" :src=getRecipeImage />
+        <div id="recipeImage">
+            <img :src=getRecipeImage />
+        </div>
         <p id=recipeName>{{recipe.recipeName}}</p>
+        <b-spinner variant="primary" class="loading" id="resetSpinner" style="display:none"></b-spinner>
     </div>
 </template>
 
@@ -11,7 +14,7 @@ export default {
     name:"recipeIcon",
     computed: {
         getRecipeImage() {
-            if (this.recipe.imageURL == "string") {
+            if (this.recipe.imageURL == "") {
                 switch (this.recipe.categoryId){
                     case 1:
                         return "https://res.cloudinary.com/recipemanagementservices/image/upload/v1603468402/breakfast_q79ccv.png";
@@ -44,7 +47,7 @@ export default {
                 }
                 
             } else {
-                return this.recipe.ImageURL;
+                return this.recipe.imageURL;
             }
         }
     },
@@ -56,7 +59,10 @@ export default {
             'getRecipeById'
         ]),
         async getRecipeById() {
+            let spinner = document.getElementsByClassName("loading")[0];
+            spinner.style.display = "block";
             await this.$store.dispatch('getRecipeById', this.recipe.recipeId)
+            spinner.style.display = "none";
             this.$router.push("/recipe")
         }
     }
@@ -64,12 +70,24 @@ export default {
 </script>
 
 <style scoped>
+
 #recipeImage {
-    max-width:100%;
-    height:142px;
+    max-width: 100%;
+    height: calc(225px * .631);
+    overflow: hidden;
+    margin: 10px auto 0 auto;
+    border-radius: 4px;
     border-top-right-radius:8px;
     border-top-left-radius:8px;
     background: #85001a;
+    -webkit-user-drag: none;
+    -khtml-user-drag: none;
+    -moz-user-drag: none;
+    -o-user-drag: none;
+}
+#recipeImage img {
+    min-width:100%;
+    max-width:100%;
     -webkit-user-drag: none;
     -khtml-user-drag: none;
     -moz-user-drag: none;
@@ -126,7 +144,7 @@ export default {
         height: 141px;
     }
     #recipeImage {
-        height: auto;
+        height: calc(165px * .631)
     }
 }
 
@@ -134,11 +152,11 @@ export default {
     #recipeImage, #recipeName, .recipeIcon {
         width:140px;
     }
-    #recipeImage {
-        height: auto;
-    }
     .recipeIcon {
         height: 130px;
+    }
+    #recipeImage {
+        height: calc(140px * .631)
     }
 }
 
@@ -146,11 +164,11 @@ export default {
     #recipeImage, #recipeName, .recipeIcon {
         width:200px;
     }
-    #recipeImage {
-        height: auto;
-    }
     .recipeIcon {
         height: 150px;
+    }
+    #recipeImage {
+        height: calc(200px * .631)
     }
 }
 </style>

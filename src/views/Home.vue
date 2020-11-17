@@ -11,7 +11,7 @@
             <div class="selectOption" id="Title: Z-A" @mouseover="changeActiveClass" @click="setSelectedItem('Title: Z-A')">Title: Z-A</div>
         </div>
         <div v-if="selectedOption == 'Category'">
-            <div class="categoriesContainer" v-for="(recipeCategory, index) in recipes" :key="index">
+            <div :class="getCategoryClass(recipeCategory.length)" v-for="(recipeCategory, index) in recipes" :key="index">
                 <div id="categoryName">
                     {{getCategoryName(index + 1)}}
                 </div>
@@ -87,57 +87,36 @@ export default {
         }
     },
     methods: {
-        scrollLeft(index, callback){
-            if (!this.scrollingLeft[index] && !this.scrollingRight[index]) {
-                this.scrollingLeft[index] = true;
-                let content = document.getElementsByClassName("categories")[index];
-                let scrollAmount = 0;
-                let scrollDistance = this.getScrollDistance();
-                let width = this.getWidth();
-                let slideTimer = setInterval(function(){
-                    content.scrollLeft -= scrollDistance;
-                    scrollAmount += scrollDistance;
-                    if(scrollAmount >= width){
-                        window.clearInterval(slideTimer);
-                        callback(index);
-                    }
-                }, 15);
+        closeSelectOptions() {
+            if (this.isOpen){
+                let elements = document.getElementsByClassName("selectOption")
+                elements.forEach(element => {
+                    element.style.display = "none";
+                })
+                let box = document.getElementsByClassName("selectedItem")[0];
+                box.style.borderBottomLeftRadius = "8px";
+                box.style.borderBottomRightRadius = "8px";
+                this.isOpen = false;
+                let activeElement = document.getElementsByClassName("selectOption active")[0];
+                if (activeElement.value != this.selectedOption){
+                    activeElement.classList.remove("active");
+                    document.getElementById(this.selectedOption).classList.add("active");
+                }
+                
             }
         },
-        scrollRight(index, callback) {
-            if (!this.scrollingLeft[index] && !this.scrollingRight[index]) {
-                this.scrollingRight[index] = true;
-                let content = document.getElementsByClassName("categories")[index];
-                let scrollAmount = 0;
-                let width = this.getWidth()
-                let scrollDistance = this.getScrollDistance();
-                let slideTimer = setInterval(function(){
-                    content.scrollLeft += scrollDistance;
-                    scrollAmount += scrollDistance;
-                    if(scrollAmount >= width){
-                        window.clearInterval(slideTimer);
-                        callback(index);
-                    }
-                }, 15);
+        changeActiveClass() {
+            if (!event.target.classList.contains("active")){
+                document.getElementsByClassName("selectOption active")[0].classList.remove("active");
+                event.target.classList.add("active");
             }
         },
-        setScrollingRightFalse(index) {
-            this.scrollingRight[index] = false;
-        },
-        setScrollingLeftFalse(index) {
-            this.scrollingLeft[index] = false;
-        },
-        getWidth() {
-            let innerWidth = window.innerWidth;
-            if (innerWidth > 1290)
-                return 245 * 5;
-            else if (innerWidth > 1050)
-                return 245 * 4;
-            else if (innerWidth > 800)
-                return 245 * 3;
-            else if (innerWidth > 565)
-                return 245 * 2;
-            return 175 * 2;
+        getCategoryClass(recipeAmount) {
+            if (recipeAmount > 0) {
+                return "categoriesContainer";
+            } else {
+                return "categoriesContainer categoriesDisplayNone";
+            }
         },
         getCategoryName(index) {
             switch(index){
@@ -177,6 +156,83 @@ export default {
             }
             return 34;
         },
+        getWidth() {
+            let innerWidth = window.innerWidth;
+            if (innerWidth > 1290)
+                return 245 * 5;
+            else if (innerWidth > 1050)
+                return 245 * 4;
+            else if (innerWidth > 800)
+                return 245 * 3;
+            else if (innerWidth > 565)
+                return 245 * 2;
+            return 175 * 2;
+        },
+        goToCreateRecipe() {
+            this.$router.push("/addrecipe");
+        },
+        scrollLeft(index, callback){
+            if (!this.scrollingLeft[index] && !this.scrollingRight[index]) {
+                this.scrollingLeft[index] = true;
+                let content = document.getElementsByClassName("categories")[index];
+                let scrollAmount = 0;
+                let scrollDistance = this.getScrollDistance();
+                let width = this.getWidth();
+                let slideTimer = setInterval(function(){
+                    content.scrollLeft -= scrollDistance;
+                    scrollAmount += scrollDistance;
+                    if(scrollAmount >= width){
+                        window.clearInterval(slideTimer);
+                        callback(index);
+                    }
+                }, 15);
+            }
+        },
+        scrollRight(index, callback) {
+            if (!this.scrollingLeft[index] && !this.scrollingRight[index]) {
+                this.scrollingRight[index] = true;
+                let content = document.getElementsByClassName("categories")[index];
+                let scrollAmount = 0;
+                let width = this.getWidth()
+                let scrollDistance = this.getScrollDistance();
+                let slideTimer = setInterval(function(){
+                    content.scrollLeft += scrollDistance;
+                    scrollAmount += scrollDistance;
+                    if(scrollAmount >= width){
+                        window.clearInterval(slideTimer);
+                        callback(index);
+                    }
+                }, 15);
+            }
+        },
+        setArrowVisibility() {
+            let elements = document.getElementsByClassName("categoriesContainer");
+            let leftArrows = document.getElementsByClassName("leftArrowContainer");
+            let rightArrows = document.getElementsByClassName("rightArrowContainer");
+            for (let i = 0; i < elements.length; i++) {
+                let width = 0;
+                let childCount = elements[i].getElementsByClassName("categories")[0].childElementCount;
+                if (childCount > 0) {
+                    if (window.innerWidth > 565)
+                        width = 245 * childCount + 50;
+                    else
+                        width = 175 * childCount + 50;
+                }
+                if (width < window.innerWidth) {
+                    rightArrows[i].style.display = "none";
+                    leftArrows[i].style.display = "none";
+                } else {
+                    rightArrows[i].style.display = "flex";
+                    leftArrows[i].style.display = "flex";
+                }
+            }
+        },
+        setScrollingRightFalse(index) {
+            this.scrollingRight[index] = false;
+        },
+        setScrollingLeftFalse(index) {
+            this.scrollingLeft[index] = false;
+        },
         setOptionDisplay(event) {
             let elements = document.getElementsByClassName("selectOption");
 
@@ -205,36 +261,10 @@ export default {
                 }
             })
         },
-        closeSelectOptions() {
-            if (this.isOpen){
-                let elements = document.getElementsByClassName("selectOption")
-                elements.forEach(element => {
-                    element.style.display = "none";
-                })
-                let box = document.getElementsByClassName("selectedItem")[0];
-                box.style.borderBottomLeftRadius = "8px";
-                box.style.borderBottomRightRadius = "8px";
-                this.isOpen = false;
-                let activeElement = document.getElementsByClassName("selectOption active")[0];
-                if (activeElement.value != this.selectedOption){
-                    activeElement.classList.remove("active");
-                    document.getElementById(this.selectedOption).classList.add("active");
-                }
-                
-            }
-        },
         setSelectedItem(selectedOption) {
             this.selectedOption = selectedOption;
         },
-        changeActiveClass() {
-            if (!event.target.classList.contains("active")){
-                document.getElementsByClassName("selectOption active")[0].classList.remove("active");
-                event.target.classList.add("active");
-            }
-        },
-        goToCreateRecipe() {
-            this.$router.push("/addrecipe");
-        }
+       
     },
     beforeMount() {
         window.scrollTo(0,0);
@@ -244,18 +274,21 @@ export default {
                 for (var i = 1; i <= 13; i++){
                     let categoryId = i;
                     let recipeCategory = this.recipeList.filter(i => i.categoryId == categoryId);
-                    if (recipeCategory.length > 0){
-                        this.recipes.push(recipeCategory);
-                    }
+                    this.recipes.push(recipeCategory);
                 }
             }
         } else {
             this.$router.replace("/");
         }
-        window.addEventListener("click", this.closeSelectOptions);      
+        window.addEventListener("click", this.closeSelectOptions);
+        window.addEventListener("resize", this.setArrowVisibility);      
+    },
+    mounted() {
+        this.setArrowVisibility()
     },
     beforeDestory() {
         window.removeEventListener("click", this.closeSelectOptions);
+        window.removeEventListener("resize", this.setArrowVisibility);      
     }
 }
 </script>
@@ -279,12 +312,16 @@ export default {
 }
 
 .categories::-webkit-scrollbar {
-    display:none
+    display:none;
 }
 
 .categoriesContainer {
     position: relative;
     height: 240px;
+}
+
+.categoriesDisplayNone {
+    display:none;
 }
 
 html {

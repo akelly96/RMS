@@ -13,13 +13,13 @@
           </div>
          <div class="inputField">
             <p class="inputLabel">Email Address</p>
-            <input type="text" class="validInput" name="email" maxlength="65" v-model="user.emailAddress" @blur="validateEmailAddress()"/>
+            <input type="text" class="validInput" name="email" maxlength="65" v-model="userCredentials.emailAddress" @blur="validateEmailAddress()"/>
             <div class="inputError emailError">* Invalid Email Address</div>
             <div class="inputError emailUnavailableError">This email is already linked to an account.</div>
           </div>
           <div class="inputField">
             <p class="inputLabel">Password</p>
-            <input type="password" autocomplete="new-password" maxlength="70" class="validInput"  name="password" v-model="user.password" @blur="validatePassword()"/>
+            <input type="password" autocomplete="new-password" maxlength="70" class="validInput"  name="password" v-model="userCredentials.password" @blur="validatePassword()"/>
             <div class="inputError passwordError">Password must contain at least 6 characters: one uppercase letter, one lowercase letter, one digit, and one special character</div>
             <div id="passwordSpec">Use a minimum of 6 characters (case sensitive) with at least one uppercase letter, one lowercase letter, one number, and one special character</div>
           </div>
@@ -42,7 +42,7 @@
             <div id="headerBox">
                 <p id="headerText">Username</p>
             </div>
-            <form class="subBox">
+            <form class="subBox" v-on:submit.prevent>
                 <div class="inputField edit">
                     <p class="inputLabel">Username</p>
                     <input disabled type="text" class="validInput" name="editUsername" maxlength="30" v-model="userCredentials.username" @keyup.enter="saveUsername"/>
@@ -64,7 +64,7 @@
             <div id="headerBox">
                 <p id="headerText">Email Address</p>
             </div>
-            <form class="subBox">
+            <form class="subBox" v-on:submit.prevent>
                 <div class="inputField edit">
                     <p class="inputLabel">Email Address</p>
                     <input disabled type="text" class="validInput" name="editEmail" maxlength="65" v-model="userCredentials.emailAddress" @keyup.enter="saveEmail()"/>
@@ -103,18 +103,18 @@
             <form class="subBox">
                 <div class="inputField">
                     <p class="inputLabel">Old Password</p>
-                    <input type="password" autocomplete="new-password" maxlength="70" class="validInput"  name="oldPassword" v-model="oldPassword"/>
+                    <input type="password" autocomplete="new-password" maxlength="70" class="validInput"  name="oldPassword" v-model="oldPassword" @keyup.enter="savePassword()"/>
                     <div class="inputError" id="incorrectPasswordError">Incorrect Password</div>
                 </div>
                 <div class="inputField">
                     <p class="inputLabel">New Password</p>
-                    <input type="password" autocomplete="new-password" maxlength="70" class="validInput"  name="newPassword" v-model="userCredentials.password" @blur="validatePassword()"/>
+                    <input type="password" autocomplete="new-password" maxlength="70" class="validInput"  name="newPassword" v-model="userCredentials.password" @blur="validatePassword()" @keyup.enter="savePassword()"/>
                     <div class="inputError passwordError">Password must contain at least 6 characters: one uppercase letter, one lowercase letter, one digit, and one special character</div>
                     <div id="passwordSpec">Use a minimum of 6 characters (case sensitive) with at least one uppercase letter, one lowercase letter, one number, and one special character</div>
                 </div>
                 <div class="inputField edit">
                     <p class="inputLabel">Confirm Password</p>
-                    <input type="password" autocomplete="new-password" maxlength="70" class="validInput" name="confirmPassword" v-model="confirmedPassword" @blur="validateConfirmPassword()"/>
+                    <input type="password" autocomplete="new-password" maxlength="70" class="validInput" name="confirmPassword" v-model="confirmedPassword" @blur="validateConfirmPassword()" @keyup.enter="savePassword()"/>
                     <div class="inputError passwordMatchError">Passwords do not match</div>
                 </div>
                  <div :class="passwordSaveIsDisabled" id="savePasswordButton" @click="savePassword()">
@@ -125,6 +125,16 @@
                 </div>
             </form>
         </div>
+        <div class="mainBox editMainBox" id="passwordMainBox">
+          <div id="headerBox">
+              <p id="headerText">Delete Account?</p>
+          </div>
+          <div class="subBox">
+            <div class="button" @click="deleteAccount()">
+                <p class="buttonText">Delete Account</p>
+            </div>
+          </div>
+      </div>
     </div>
     <b-spinner variant="primary" class="loading" id="signUpSpinner" style="display:none"></b-spinner>
   </div>
@@ -201,7 +211,9 @@ export default {
       'validateEmail',
       'validateOldPassword',
       'updateUser',
-      'changePassword'
+      'changePassword',
+      'displaySuccessErrorMessage',
+      'deleteAccount'
     ]),
     async validateCreationInfo() {
       if (this.isDisabled == "button") {
@@ -227,13 +239,23 @@ export default {
       this.clearForm();
       this.$router.push("/");
     },
-    async validateEmailAddress() {
-        let element;
-        if (this.section == "createAccount") {
-             element = document.getElementsByName("email")[0];
-        } else {
-             element = document.getElementsByName("editEmail")[0];
+    async deleteAccount() {
+      const answer = window.confirm('Are you sure you wish to delete your account?')
+      if (answer) {
+        let success = await this.$store.dispatch('deleteAccount');
+        if (success) {
+          this.$store.dispatch('displaySuccessErrorMessage', {message: 'Account Successfully Deleted', success: true});
+          this.$router.push('/');
         }
+      }
+    },
+    async validateEmailAddress() {
+      let element;
+      if (this.section == "createAccount") {
+            element = document.getElementsByName("email")[0];
+      } else {
+            element = document.getElementsByName("editEmail")[0];
+      }
       let emailError = document.getElementsByClassName("emailError")[0];
       let emailUnavailableError = document.getElementsByClassName("emailUnavailableError")[0];
       if (this.userCredentials.emailAddress === "") {
@@ -362,15 +384,21 @@ export default {
     },
     async saveUsername() {
       if (this.usernameSaveIsDisabled == "button editButton"){
+        let spinner = document.getElementsByClassName("loading")[0];
+        spinner.style.display = "block";
         await this.validateUsername();
         if (this.validUsername) {
-          this.$store.dispatch('updateUser', {save: 'username', username: this.userCredentials.username});
+          let success = await this.$store.dispatch('updateUser', {save: 'username', username: this.userCredentials.username});
           document.getElementsByClassName("editUsernameButton")[0].style.display = "inline-block";
           document.getElementById("saveUsernameButton").style.display = "none";
           document.getElementsByClassName("cancelUsernameButton")[0].style.display = "none";
           document.getElementsByName("editUsername")[0].disabled = true;
           this.originalUsername = this.userCredentials.username;
+          if (success) {
+            this.$store.dispatch('displaySuccessErrorMessage', {message: 'Username Updated!', success: true});
+          }
         }
+        spinner.style.display = "none";
       }
     },
     cancelUsernameEdit() {
@@ -395,15 +423,21 @@ export default {
     },
     async saveEmail() {
       if (this.emailSaveIsDisabled == "button editButton") {
+        let spinner = document.getElementsByClassName("loading")[0];
+        spinner.style.display = "block";
         await this.validateEmailAddress();
         if (this.validEmailAddress) {
-          this.$store.dispatch('updateUser', {save: 'email', email: this.userCredentials.emailAddress});
+          let success = this.$store.dispatch('updateUser', {save: 'email', email: this.userCredentials.emailAddress});
           document.getElementsByClassName("editEmailButton")[0].style.display = "inline-block";
           document.getElementById("saveEmailButton").style.display = "none";
           document.getElementsByClassName("cancelEmailButton")[0].style.display = "none";
           document.getElementsByName("editEmail")[0].disabled = true;
           this.originalEmailAddress = this.userCredentials.emailAddress;
+          if (success) {
+            this.$store.dispatch('displaySuccessErrorMessage', {message: 'Email Updated!', success: true})
+          }
         }
+        spinner.style.display = "none";
       }
     },
     cancelEmailEdit() {
@@ -423,19 +457,35 @@ export default {
       document.getElementsByName('oldPassword')[0].focus();
     },
     async savePassword() {
+      let spinner = document.getElementsByClassName("loading")[0];
       let incorrectPassword = document.getElementById("incorrectPasswordError");
       if (this.passwordSaveIsDisabled == "button editButton" && this.validPassword && this.passwordsMatch){
+        spinner.style.display = "block";
         await this.$store.dispatch('validateOldPassword', this.oldPassword);
         if (this.validOldPassword) {
-          this.$store.dispatch('changePassword', this.confirmedPassword);
+          let success = this.$store.dispatch('changePassword', this.confirmedPassword);
           incorrectPassword.style.display = "none";
           this.userCredentials.password = "";
           this.confirmedPassword = "";
           this.oldPassword = "";
           document.getElementById("passwordMainBox").style.display = "block";
           document.getElementById("passwordEditMainBox").style.display = "none";
+          if (success) {
+            this.$store.dispatch('displaySuccessErrorMessage', {message: 'Password Updated!', success: true});
+          }
         } else {
           incorrectPassword.style.display = "block";
+        }
+        spinner.style.display = "none";
+      } else if (this.passwordSaveIsDisabled == "button editButton") {
+        if (!this.validPassword) {
+          this.validatePassword();
+        }
+        if (this.validPassword && !this.passwordsMatch) {
+          this.validateConfirmPassword();
+        }
+        if (this.validPassword && this.passwordsMatch) {
+          this.savePassword();
         }
       }
     },
@@ -449,7 +499,7 @@ export default {
   },
   beforeMount() {
       if (this.section == "accountSettings") {
-          this.userCredentials = Object.assign({}, this.user);
+          this.userCredentials = JSON.parse(JSON.stringify(this.user));
           this.originallyTypedUsername = this.userCredentials.username;
           this.originalUsername = this.userCredentials.username;
           this.originallyTypedEmail = this.userCredentials.emailAddress;

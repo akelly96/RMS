@@ -48,7 +48,8 @@ export default {
         EmailAddress: "",
         validEmailAddress: false,
         messageSent: false,
-        confirmationMessage: ""
+        confirmationMessage: "",
+        baseURL: "https://localhost:44325/api/"
     }
   },
   methods: {
@@ -76,7 +77,7 @@ export default {
             let spinner = document.getElementById("forgotPasswordSpinner")
             try{
                 spinner.style.display = "inline-block";
-                let result = await Axios.get("ResetPassword", {params: {emailAddress: this.EmailAddress}})
+                let result = await Axios.get(`${this.baseURL}ResetPassword`, {params: {emailAddress: this.EmailAddress}})
                 spinner.style.display = "none";
                 emailNotFoundError.style.display = "none";
                 email.classList.remove("invalidInput");
@@ -90,6 +91,7 @@ export default {
         }
     },
     cancel() {
+      window.scroll(0, 0);
         this.EmailAddress = "";
         this.$router.push("/");
     }
