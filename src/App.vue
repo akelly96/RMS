@@ -1,11 +1,11 @@
 <template>
   <div>
-    <div id="loggedOutHeader" v-if="!loggedIn">
+    <div id="loggedOutHeader" v-show="!loggedIn">
       <img class="logo" src="./assets/logo.png"/>
       <p id="loggedOutHeaderText">Recipe Management System</p>
       <p id="smallTopNavigationText">RMS</p>
     </div>
-    <div id="topNavigation" v-if="loggedIn">
+    <div id="topNavigation" v-show="loggedIn">
       <img class="logo" src="./assets/logo.png"/>
       <p id="topNavigationText">Recipe Management System</p>
       <p id="smallTopNavigationText">RMS</p>
@@ -39,7 +39,7 @@
       <p :id="success? 'successMessage' : 'errorMessage'"><b>{{successErrorMessage}}</b></p>
     </div>
     <router-view :id=getViewId />
-    <div id="bottomNavigation" v-if="loggedIn">
+    <div id="bottomNavigation" v-show="loggedIn">
       <router-link to="/home" class="navButtonContainer">
         <div class="navButtons">
           <img class="home" src="./assets/home.png"/>
@@ -111,6 +111,7 @@ export default {
       }
     },
     logOut() {
+      this.toggleMenuItemsDisplay();
       this.$store.commit('SET_LOGGED_OUT');
       sessionStorage.removeItem('vuex');
       this.$router.push("/");
@@ -458,7 +459,7 @@ input:focus {
   position:fixed;
   width:100%;
   top:0;
-  z-index: 2;
+  z-index: 3;
 }
 
 #topNavigationText, #loggedOutHeaderText {

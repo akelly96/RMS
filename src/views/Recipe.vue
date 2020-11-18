@@ -36,7 +36,7 @@
             </div>
             <div id="notesContainer">
                 <p class="containerHeader">Notes</p>
-                <p id="notes">{{selectedRecipe.notes}}</p>
+                <pre id="notes">{{selectedRecipe.notes}}</pre>
             </div>
         </div>
         <div id="rightSide">
@@ -51,7 +51,7 @@
             </div>
             <div id="instructionsContainer">
                 <p class="containerHeader">Instructions</p>
-                <p id="instructions">{{selectedRecipe.instructions}}</p>
+                <pre id="instructions">{{selectedRecipe.instructions}}</pre>
             </div>
         </div>
     </div>
@@ -134,6 +134,13 @@
                 } else {
                     this.containersRelative = true;
                 }
+            },
+            setImageSize() {
+                let imageContainer = document.getElementById("imageContainer");
+                let image = document.getElementById("image");
+                if (imageContainer.clientHeight > image.clientHeight + 20) {
+                    image.id = "smallImage";
+                }
             }
         },
         beforeMount() {
@@ -144,6 +151,9 @@
             else {
                 this.$router.replace("/");
             }
+        },
+        mounted() {
+            this.setImageSize();
         },
         beforeDestroy() {
             window.removeEventListener("resize", this.setContainersRelative);
@@ -185,15 +195,16 @@
     #imageContainer {
         max-width: 90%;
         height:calc(100vw * .33 * .95 * .631);
-        padding: 10px 10px 0 10px;
+        padding: 10px 0 0 10px;
         border-bottom: 10px solid #85001a;
+        border-right: 10px solid #85001a;
         background: #85001a;
         overflow: hidden;
         margin: 10px auto 10px 20px;
         border-radius: 4px;
     }
     
-    #imageContainer img {
+    #image {
         min-width:100%;
         max-width:100%;
         -webkit-user-drag: none;
@@ -227,6 +238,12 @@
 
     #notes, #instructions {
         padding: 10px;
+        overflow-x: auto;
+        white-space: pre-wrap;
+        white-space: -moz-pre-wrap;
+        white-space: -pre-wrap;
+        white-space: -o-pre-wrap;
+        word-wrap: break-word;
     }
 
     #recipeNameContainer {
@@ -250,6 +267,15 @@
         position:absolute;
         right: 0;
         top:140px;
+    }
+
+    #smallImage {
+        min-height: 100%;
+        max-height:100%;
+        -webkit-user-drag: none;
+        -khtml-user-drag: none;
+        -moz-user-drag: none;
+        -o-user-drag: none;
     }
 
     ul {

@@ -26,104 +26,159 @@ export default new Vuex.Store({
     validOldPassword: false,
     successErrorMessage: "Save Successful",
     success: false,
-    trigger: false
+    trigger: false,
+    selectedOption: "Category"
   },  
   actions: {
     async addIngredients({dispatch, state}, ingredients) {
-      try {
-        await Axios.post(`${baseURL}Ingredients`, ingredients, {headers: {Authorization: `Bearer ${state.token}`}});
-        return true;
-      } catch (error) {
-        if (error.response.status === 401) {
-          console.log("Invalid token. Refreshing...");
-          await dispatch('refreshToken', {param: ingredients, backTo: 'addIngredients'});
-        } else {
-          console.log(error);
-          dispatch('displaySuccessErrorMessage', {message: 'Failed to Add Ingredients', success: false});
-          return false;
+      let attempt = true;
+      while(attempt) {
+        try {
+          await Axios.post(`${baseURL}Ingredients`, ingredients, {headers: {Authorization: `Bearer ${state.token}`}});
+          attempt = false;
+          return true;
+        } catch (error) {
+          if (error.response.status === 401) {
+            console.log("Invalid token. Refreshing...");
+            let success = await dispatch('refreshToken');
+            if (!success) {
+              attempt = false;
+              Router.replace("/");
+            }
+          } else {
+            console.log(error);
+            dispatch('displaySuccessErrorMessage', {message: 'Failed to Add Ingredients', success: false});
+            attempt = false;
+            return false;
+          }
         }
       }
     },
     async addRecipe({commit, state, dispatch}, recipe){
-      try {
-        let result = await Axios.post(`${baseURL}Recipes`, recipe, {headers: {Authorization: `Bearer ${state.token}`}});
-        commit('ADD_RECIPE', result.data)
-        commit('ADD_RECIPE_TO_LIST', result.data)
-        commit("SET_RECIPE_LIST", state.recipeList);
-        commit('SET_SELECTED_RECIPE', result.data);
-        return true;
-      } catch (error) {
-        if (error.response.status === 401) {
-          console.log("Invalid token. Refreshing...");
-          await dispatch('refreshToken', {param: recipe, backTo: 'addRecipe'});
-        } else {
-          console.log(error);
-          dispatch('displaySuccessErrorMessage', {message: 'Recipe Save Failed', success: false});
-          return false;
+      let attempt = true;
+      while(attempt){
+        try {
+          let result = await Axios.post(`${baseURL}Recipes`, recipe, {headers: {Authorization: `Bearer ${state.token}`}});
+          commit('ADD_RECIPE', result.data);
+          commit('ADD_RECIPE_TO_LIST', result.data);
+          commit("SET_RECIPE_LIST", state.recipeList);
+          commit('SET_SELECTED_RECIPE', result.data);
+          attempt = false;
+          return true;
+        } catch (error) {
+          if (error.response.status === 401) {
+            console.log("Invalid token. Refreshing...");
+            let success = await dispatch('refreshToken');
+            if (!success) {
+              attempt = false;
+              Router.replace("/");
+            }
+          } else {
+            console.log(error);
+            dispatch('displaySuccessErrorMessage', {message: 'Recipe Save Failed', success: false});
+            attempt = false;
+            return false;
+          }
         }
       }
     },
     async changePassword({dispatch, state}, password) {
-      let user = {userId: state.user.userId, password: password}
-      try {
-        await Axios.put(`${baseURL}Login/ChangePassword/${state.user.userId}`, user, {headers: {Authorization: `Bearer ${state.token}`}});
-        return true;
-      } catch(error) {
-        if (error.response.status === 401) {
-          console.log("Invalid token. Refreshing...");
-          await dispatch('refreshToken', { param: password, backTo: 'changePassword'});
-        } else {
-          console.log(error);
-          dispatch('displaySuccessErrorMessage', {message: 'Password Change Failed', success: false});
-          return false;
+      let attempt = true;
+      while (attempt) {
+        let user = {userId: state.user.userId, password: password}
+        try {
+          await Axios.put(`${baseURL}Login/ChangePassword/${state.user.userId}`, user, {headers: {Authorization: `Bearer ${state.token}`}});
+          attempt = false;
+          return true;
+        } catch(error) {
+          if (error.response.status === 401) {
+            console.log("Invalid token. Refreshing...");
+            let success = await dispatch('refreshToken');
+            if (!success) {
+              attempt = false;
+              Router.replace("/");
+            }
+          } else {
+            console.log(error);
+            dispatch('displaySuccessErrorMessage', {message: 'Password Change Failed', success: false});
+            attempt = false;
+            return false;
+          }
         }
       }
     },
     async deleteAccount({dispatch, commit, state}) {
-      try {
-        await Axios.delete(`${baseURL}Login`, {headers: {Authorization: `Bearer ${state.token}`}, params: {id: state.user.userId}}, );
-        commit('SET_LOGGED_OUT');
-        return true;
-      } catch (error) {
-        if (error.response.status === 401) {
-          console.log("Invalid token. Refreshing...");
-          await dispatch('refreshToken', {param: "", backTo: 'deleteAccount'});
-        } else {
-          console.log(error);
-          dispatch('displaySuccessErrorMessage', {message: 'Failed To Delete Account', success: false});
-          return false;
+      let attempt = true;
+      while (attempt) {
+        try {
+          await Axios.delete(`${baseURL}Login`, {headers: {Authorization: `Bearer ${state.token}`}, params: {id: state.user.userId}}, );
+          commit('SET_LOGGED_OUT');
+          attempt = false;
+          return true;
+        } catch (error) {
+          if (error.response.status === 401) {
+            console.log("Invalid token. Refreshing...");
+            let success = await dispatch('refreshToken');
+            if (!success) {
+              attempt = false;
+              Router.replace("/");
+            }
+          } else {
+            console.log(error);
+            dispatch('displaySuccessErrorMessage', {message: 'Failed To Delete Account', success: false});
+            attempt = false;
+            return false;
+          }
         }
       }
     },
     async deleteIngredients({dispatch, state}, ingredientIds) {
-      try {
-        await Axios.delete(`${baseURL}Ingredients`, ingredientIds, {headers: {Authorization: `Bearer ${state.token}`}});
-        return true;
-      } catch (error) {
-        if (error.response.status === 401) {
-          console.log("Invalid token. Refreshing...");
-          await dispatch('refreshToken', {param: ingredientIds, backTo: 'deleteIngredients'});
-        } else {
-          console.log(error);
-          dispatch('displaySuccessErrorMessage', {message: 'Failed To Delete Ingredients', success: false});
-          return false;
+      let attempt = true;
+      while (attempt) {
+        try {
+          await Axios.delete(`${baseURL}Ingredients`, ingredientIds, {headers: {Authorization: `Bearer ${state.token}`}});
+          attempt = false;
+          return true;
+        } catch (error) {
+          if (error.response.status === 401) {
+            console.log("Invalid token. Refreshing...");
+            let success = await dispatch('refreshToken');
+            if (!success) {
+              attempt = false;
+              Router.replace("/");
+            }
+          } else {
+            console.log(error);
+            dispatch('displaySuccessErrorMessage', {message: 'Failed To Delete Ingredients', success: false});
+            attempt = false;
+            return false;
+          }
         }
       }
     },
     async deleteRecipe({commit, dispatch, state}, id) {
-      try {
-        await Axios.delete(`${baseURL}Recipes`,{headers: {Authorization: `Bearer ${state.token}`}, params: {id: id}});
-        commit('REMOVE_RECIPE', id);
-        commit('SET_RECIPE_LIST', state.recipeList);
-        return true;
-      } catch (error) {
-        if (error.response.status === 401) {
-          console.log("Invalid token. Refreshing...");
-          await dispatch('refreshToken', {param: id, backTo: 'deleteRecipe'});
-        } else {
-          console.log(error);
-          dispatch('displaySuccessErrorMessage', {message: 'Failed To Delete Recipe', success: false});
-          return false;
+      let attempt = true;
+      while (attempt) {
+        try {
+          await Axios.delete(`${baseURL}Recipes`,{headers: {Authorization: `Bearer ${state.token}`}, params: {id: id}});
+          commit('REMOVE_RECIPE', id);
+          commit('SET_RECIPE_LIST', state.recipeList);
+          attempt = false;
+          return true;
+        } catch (error) {
+          if (error.response.status === 401) {
+            console.log("Invalid token. Refreshing...");
+            let success = await dispatch('refreshToken');
+            if (!success) {
+              attempt = false;
+              Router.replace("/");
+            }
+          } else {
+            console.log(error);
+            dispatch('displaySuccessErrorMessage', {message: 'Failed To Delete Recipe', success: false});
+            attempt = false;
+            return false;
+          }
         }
       }
     },
@@ -133,25 +188,35 @@ export default new Vuex.Store({
       commit('TOGGLE_TRIGGER')
     },
     async getRecipeById({commit, state, dispatch}, id) {
-      let recipe = state.fullRecipes.find(x => x.recipeId == id);
-      if (recipe == null){
-        try {
-          let result = await Axios.get(`${baseURL}Recipes/${id}`, {headers: {Authorization: `Bearer ${state.token}`}})
-          commit('ADD_RECIPE_TO_LIST', result.data);
-          commit('SET_SELECTED_RECIPE', result.data);
-          return true;
-        } catch(error){
-          if (error.response.status === 401) {
-            console.log("Invalid token. Refreshing...");
-            await dispatch('refreshToken', { param: id, backTo: 'getRecipeById'});
-          } else {
-            console.log(error);
-            dispatch('displaySuccessErrorMessage', {message: 'Recipe Retrieval Failed', success: false})
-            return false;
+      let attempt = true;
+      while(attempt) {
+        let recipe = state.fullRecipes.find(x => x.recipeId == id);
+        if (recipe == null){
+          try {
+            let result = await Axios.get(`${baseURL}Recipes/${id}`, {headers: {Authorization: `Bearer ${state.token}`}})
+            commit('ADD_RECIPE_TO_LIST', result.data);
+            commit('SET_SELECTED_RECIPE', result.data);
+            attempt = false;
+            return true;
+          } catch(error){
+            if (error.response.status === 401) {
+              console.log("Invalid token. Refreshing...");
+              let success = await dispatch('refreshToken');
+              if (!success) {
+                attempt = false;
+                Router.replace("/");
+              }
+            } else {
+              console.log(error);
+              dispatch('displaySuccessErrorMessage', {message: 'Recipe Retrieval Failed', success: false})
+              attempt = false;
+              return false;
+            }
           }
+        } else {
+          commit('SET_SELECTED_RECIPE', recipe);
+          return true;
         }
-      } else {
-        commit('SET_SELECTED_RECIPE', recipe);
       }
     },
     async getRecipeList({commit, state}) {
@@ -162,7 +227,7 @@ export default new Vuex.Store({
         console.log(error);
       }
     },
-    async login({commit, dispatch}, credentials) {
+    async login({commit}, credentials) {
       try {
         let result = await Axios.get(`${baseURL}Login`, {params: {username: credentials.username, password: credentials.password}})
         if (result.data == "unauthorized")
@@ -172,7 +237,6 @@ export default new Vuex.Store({
         commit('SET_LOGGED_IN', true);
       } catch (error) {
         console.log(error);
-        dispatch('displaySuccessErrorMessage', {message: 'Login Failed. Please Try Again', success: false})
       }
     },
     async postNewUser({commit, dispatch}, user) {
@@ -186,80 +250,102 @@ export default new Vuex.Store({
         dispatch('displaySuccessErrorMessage', {message: 'Failed To Create Account. Please Try Again', success: false})
       }
     },
-    async refreshToken({commit, state, dispatch}, param){
+    async refreshToken({commit, state}){
       try {
         let result = await Axios.get(`${baseURL}Login/RefreshToken`, {params: {token: state.token}});
-        commit('SET_TOKEN', result.data.token)
-        if (param.param != "") {
-          await dispatch(param.backTo, param.param);
-        } else {
-          await dispatch(param.backTo);
-        }
+        commit('SET_TOKEN', result.data.token);
+        return true;
       }catch(error) {
         console.log(error);
         commit("SET_LOGGED_OUT");
         alert("Something Went Wrong! Please Re-Login and Try Again!");
-        Router.replace("/");
+        return false;
       }
     },
     async updateIngredients({dispatch, state}, ingredients) {
-      try {
-        await Axios.put(`${baseURL}Ingredients`, ingredients, {headers: {Authorization: `Bearer ${state.token}`}});
-        return true;
-      } catch (error) {
-        if (error.response.status === 401) {
-          console.log("Invalid token. Refreshing...");
-          await dispatch('refreshToken', {param: ingredients, backTo: 'updateIngredients'});
-        } else {
-          console.log(error);
-          dispatch('displaySuccessErrorMessage', {message: 'Failed To Update Ingredients', success: false})
-          return false;
+      let attempt = true;
+      while (attempt) {
+        try {
+          await Axios.put(`${baseURL}Ingredients`, ingredients, {headers: {Authorization: `Bearer ${state.token}`}});
+          attempt = false;
+          return true;
+        } catch (error) {
+          if (error.response.status === 401) {
+            console.log("Invalid token. Refreshing...");
+            let success = await dispatch('refreshToken');
+            if (!success) {
+              attempt = false;
+              Router.replace("/");
+            }
+          } else {
+            console.log(error);
+            dispatch('displaySuccessErrorMessage', {message: 'Failed To Update Ingredients', success: false});
+            attempt = false;
+            return false;
+          }
         }
       }
     },
     async updateRecipe({commit, dispatch, state}, recipe) {
-      try {
-        await Axios.put(`${baseURL}Recipes`, recipe, {headers: {Authorization: `Bearer ${state.token}`}});
-        commit('SET_RECIPE', recipe);
-        commit('SET_RECIPE_LIST', state.recipeList);
-        commit('SET_SELECTED_RECIPE', recipe);
-        return true;
-      } catch (error) {
-        if (error.response.status === 401) {
-          console.log("Invalid token. Refreshing...");
-          await dispatch('refreshToken', { param: recipe, backTo: 'updateRecipe'});
-        } else {
-          console.log(error);
-          dispatch('displaySuccessErrorMessage', {message: 'Failed To Update Recipe', success: false})
-          return false;
+      let attempt = true;
+      while (attempt) {
+        try {
+          await Axios.put(`${baseURL}Recipes`, recipe, {headers: {Authorization: `Bearer ${state.token}`}});
+          commit('SET_RECIPE', recipe);
+          commit('SET_RECIPE_LIST', state.recipeList);
+          commit('SET_SELECTED_RECIPE', recipe);
+          attempt = false;
+          return true;
+        } catch (error) {
+          if (error.response.status === 401) {
+            console.log("Invalid token. Refreshing...");
+            let success = await dispatch('refreshToken');
+            if (!success) {
+              attempt = false;
+              Router.replace("/");
+            }
+          } else {
+            console.log(error);
+            dispatch('displaySuccessErrorMessage', {message: 'Failed To Update Recipe', success: false})
+            attempt = false;
+            return false;
+          }
         }
       }
     },
     async updateUser({commit, dispatch, state}, params) {
       let oldEmail = state.user.emailAddress;
       let oldUsername = state.user.username;
-
-      try {
-        if (params.save == "email") {
-          commit('SET_USER_EMAIL', params.email);
-        } else {
-          commit('SET_USER_USERNAME', params.username);
-        }
-        await Axios.put(`${baseURL}Login/${state.user.userId}`, state.user, {headers: {Authorization: `Bearer ${state.token}`}});
-        return true;
-      } catch(error) {
-        if (error.response.status === 401) {
-          console.log("Invalid token. Refreshing...");
-          await dispatch('refreshToken', { param: params, backTo: 'updateUser'});
-        } else {
+      let attempt = true;
+      while (attempt) {
+        try {
           if (params.save == "email") {
-            commit('SET_USER_EMAIL', oldEmail);
+            commit('SET_USER_EMAIL', params.email);
           } else {
-            commit('SET_USER_USERNAME', oldUsername);
+            commit('SET_USER_USERNAME', params.username);
           }
-          console.log(error);
-          dispatch('displaySuccessErrorMessage', {message: 'Failed To Update Account Info', success: false})
-          return false;
+          await Axios.put(`${baseURL}Login/${state.user.userId}`, state.user, {headers: {Authorization: `Bearer ${state.token}`}});
+          attempt = false;
+          return true;
+        } catch(error) {
+          if (error.response.status === 401) {
+            console.log("Invalid token. Refreshing...");
+            let success = await dispatch('refreshToken');
+            if (!success) {
+              attempt = false;
+              Router.replace("/");
+            }
+          } else {
+            if (params.save == "email") {
+              commit('SET_USER_EMAIL', oldEmail);
+            } else {
+              commit('SET_USER_USERNAME', oldUsername);
+            }
+            console.log(error);
+            dispatch('displaySuccessErrorMessage', {message: 'Failed To Update Account Info', success: false})
+            attempt = false;
+            return false;
+          }
         }
       }
     },
@@ -381,6 +467,9 @@ export default new Vuex.Store({
       state.reverseAlphabeticalRecipeList = {};
       state.selectedRecipe = {};
       state.fullRecipes = [];
+    },
+    SET_SELECTED_OPTION(state, selectedOption) {
+      state.selectedOption = selectedOption;
     },
     SET_SELECTED_RECIPE(state, recipe){
       state.selectedRecipe = recipe;

@@ -61,6 +61,7 @@
 <script>
 import RecipeIcon from '../components/RecipeIcon';
 import { mapState } from 'vuex';
+import { mapMutations } from 'vuex';
 export default {
     name: "home",
     components: {
@@ -72,13 +73,13 @@ export default {
         'alphabeticalRecipeList',
         'reverseAlphabeticalRecipeList',
         'loggedIn',
-        'user'
+        'user',
+        'selectedOption'
         ])
     },
     data: function() {
         return {
             recipes: [],
-            selectedOption: "Category",
             setTopOptions: false,
             isOpen: false,
             slideTimer: null,
@@ -87,6 +88,9 @@ export default {
         }
     },
     methods: {
+        ...mapMutations([
+        'SET_SELECTED_OPTION', 
+        ]),
         closeSelectOptions() {
             if (this.isOpen){
                 let elements = document.getElementsByClassName("selectOption")
@@ -262,7 +266,7 @@ export default {
             })
         },
         setSelectedItem(selectedOption) {
-            this.selectedOption = selectedOption;
+            this.$store.commit('SET_SELECTED_OPTION', selectedOption);
         },
        
     },
@@ -318,6 +322,7 @@ export default {
 .categoriesContainer {
     position: relative;
     height: 240px;
+    margin-bottom:20px;
 }
 
 .categoriesDisplayNone {

@@ -1,7 +1,7 @@
 <template>
     <div class="recipeIcon" @click="getRecipeById">
         <div id="recipeImage">
-            <img :src=getRecipeImage />
+            <img id="image" :src=getRecipeImage />
         </div>
         <p id=recipeName>{{recipe.recipeName}}</p>
         <b-spinner variant="primary" class="loading" id="resetSpinner" style="display:none"></b-spinner>
@@ -64,7 +64,17 @@ export default {
             await this.$store.dispatch('getRecipeById', this.recipe.recipeId)
             spinner.style.display = "none";
             this.$router.push("/recipe")
+        },
+        setImageSize() {
+            let imageContainer = document.getElementById("recipeImage");
+            let image = document.getElementById("image");
+            if (imageContainer.clientHeight > image.clientHeight) {
+                image.id = "smallImage";
+            }
         }
+    },
+    mounted() {
+        this.setImageSize();
     }
 }
 </script>
@@ -76,7 +86,6 @@ export default {
     height: calc(225px * .631);
     overflow: hidden;
     margin: 10px auto 0 auto;
-    border-radius: 4px;
     border-top-right-radius:8px;
     border-top-left-radius:8px;
     background: #85001a;
@@ -85,7 +94,8 @@ export default {
     -moz-user-drag: none;
     -o-user-drag: none;
 }
-#recipeImage img {
+
+#image {
     min-width:100%;
     max-width:100%;
     -webkit-user-drag: none;
@@ -134,6 +144,16 @@ export default {
 #recipeBox {
     height: 145px;
     border-radius: 4px;
+}
+
+
+#smallImage {
+    min-height:100%;
+    max-height:100%;
+    -webkit-user-drag: none;
+    -khtml-user-drag: none;
+    -moz-user-drag: none;
+    -o-user-drag: none;
 }
 
 @media only screen and (max-width:565px) {

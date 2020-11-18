@@ -54,9 +54,9 @@
                             <p class="buttonText">BROWSE</p>
                             <input type="file" id="imageSelect" name="image" @change="onChange">
                         </label>
-                        <div v-else>
+                        <div v-show="image">
                             <div class="croppedImage">
-                                <img :src="image" alt="" />
+                                <img id="image" :src="image" alt="" />
                             </div>
                             <div class="button" id="changeImage" @click="removeImage">
                                 <p class="buttonText">CHANGE IMAGE</p>
@@ -165,6 +165,7 @@ export default {
             },
             category: "1",
             image: "",
+            imageHeight: -1,
             originalImage: "",
             columns: 2,
             notesPlaceholder: "Add anything you may find beneficial",
@@ -181,6 +182,13 @@ export default {
             clickedSave: false,
             baseURL: "https://localhost:44325/api/",
             inProgess: false
+        }
+    },
+    watch: {
+        imageHeight: function() {
+            if (this.image != "") {
+                this.setImageSize();
+            }
         }
     },
     methods: {
@@ -251,6 +259,12 @@ export default {
 
                 reader.onload = (event) => {
                     vm.image = event.target.result;
+                    var image = new Image();
+                    image.src = reader.result;
+
+                    image.onload = function() {
+                        vm.imageHeight = image.height;
+                    };
                 }
 
                 reader.readAsDataURL(file);
@@ -267,6 +281,7 @@ export default {
                 console.log(response.data);
                 this.fullRecipe.imageURL = "";
                 this.image = "";
+                this.imageHeight = -1;
             })
             .catch (error => {
                 console.log(error);
@@ -353,7 +368,7 @@ export default {
         }, 
         async saveChanges() {
             let spinner = document.getElementById("spinner");
-            let success;
+            let success = true;
             spinner.style.display = "block";
             if (this.page == "ADD"){
                 if (this.image != "") {
@@ -367,9 +382,9 @@ export default {
                 }
             } else {
                 if (!this.equalRecipes(this.fullRecipe, this.selectedRecipe)) {
-                    let ingredientSuccess;
-                    let updateIngredientSuccess;
-                    let deleteIngredientSuccess;
+                    let ingredientSuccess = true;
+                    let updateIngredientSuccess = true;
+                    let deleteIngredientSuccess = true;
                     if (!this.equalIngredients(this.fullRecipe.ingredients, this.selectedRecipe.ingredients)) {
                         this.fullRecipe.ingredients.forEach(ingredient => {
                             if (ingredient.ingredientId != -1) {
@@ -424,10 +439,18 @@ export default {
             Axios(requestObj)
             .then((result) => {
                 this.fullRecipe.imageURL = this.image = this.originalImage = result.data.secure_url.toString();
+                this.imageHeight = this.image.clientHeight;
             })
             .catch((error) => {
                 console.log(error);
             })
+        },
+        setImageSize() {
+            let imageContainer = document.getElementsByClassName("croppedImage")[0];
+            let image = document.getElementById("image");
+            if (imageContainer.clientHeight > this.imageHeight) {
+                image.id = "smallImage";
+            }
         },
         setIngredientFocus(index) {
             document.getElementsByName("ingredient")[index].focus();
@@ -477,6 +500,8 @@ export default {
                 this.validateInstructions();
                 if (this.validRecipeName && this.validIngredients && this.validCategory && this.validInstructions) {
                     this.saveChanges();
+                } else {
+                    this.$store.dispatch('displaySuccessErrorMessage', {message: "Please Fix Errors Before Saving", success: false})
                 }
                 this.inProgress = false;
             }
@@ -581,11 +606,16 @@ export default {
     border-radius: 4px;
     border: 3px solid #005d85;
 }
-.croppedImage img {
+
+#image {
     min-width:100%;
     max-width:100%;
 }
 
+#smallImage {
+    min-height:100%;
+    max-height:100%;
+}
 .deleteButton {
     display:inline-block;
     border-radius: 20px;
