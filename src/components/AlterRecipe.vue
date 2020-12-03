@@ -96,7 +96,7 @@
                                         <p id="sortSymbol">&#8942;&#8942;</p>
                                     </td>
                                     <td class="ingredientTableContainer" @click="setIngredientFocus(index)">
-                                        <input type="text" class="ingredientName" name="ingredient" maxlength="60" :placeholder="ingredientPlaceholder" v-model="ingredient.ingredientName" @blur="validateIngredients"/>
+                                        <input type="text" class="ingredientName" name="ingredient" maxlength="60" :placeholder="ingredientPlaceholder" v-model="ingredient.ingredientName" @blur="validateIngredients" @keyup.enter="addIngredient()"/>
                                     </td>
                                     <td class="delete" @click="deleteIngredient(index)">
                                         <div class="deleteButton">&#x2715;</div>
@@ -200,13 +200,15 @@ export default {
             'deleteIngredients',
             'displaySuccessErrorMessage'
         ]),
-        addIngredient() {
+        async addIngredient() {
             this.fullRecipe.ingredients.push({
                 ingredientId:-1,
                 ingredientName:"",
                 recipeId: this.recipeId,
                 sortOrder: this.fullRecipe.ingredients.length + 1
             });
+            let elements = await document.getElementsByClassName("ingredientName");
+            elements[elements.length - 1].focus();
         },
         cancelChanges() {
             if (!this.inProgress){
@@ -244,6 +246,7 @@ export default {
                 this.validRecipeName = false;
                 this.$store.dispatch('displaySuccessErrorMessage',{message: 'Canceled!', success:false})
                 this.inProgress = false;
+                this.$router.back();
             }
         },
         createFile(file) {
@@ -378,7 +381,8 @@ export default {
                 spinner.style.display = "none";
                 if (success) {
                     await this.$store.dispatch('displaySuccessErrorMessage', {message: "Save Successful!", success: true})
-                    this.$router.replace("/editrecipe");
+                    this.originalFullRecipe = JSON.parse(JSON.stringify(this.fullRecipe));
+                    this.$router.replace("/recipe");
                 }
             } else {
                 if (!this.equalRecipes(this.fullRecipe, this.selectedRecipe)) {
@@ -419,9 +423,10 @@ export default {
                         }
                         this.saveImage();
                     }
-                    success = await this.$store.dispatch('updateRecipe', this.fullRecipe);
+                    success = await this.$store.dispatch('updateRecipe', JSON.parse(JSON.stringify(this.fullRecipe)));
                     if (success && ingredientSuccess && updateIngredientSuccess && deleteIngredientSuccess) {
                         this.$store.dispatch('displaySuccessErrorMessage', {message: "Save Successful!", success: true})
+                        this.$router.back();
                     }
                 }
             }

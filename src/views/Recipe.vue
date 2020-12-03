@@ -1,9 +1,6 @@
 <template>
     <div v-if="loggedIn">
-        <div id="buttonContainer" v-if="windowWidth > 515">
-            <div class="button" id="back" @click="goBack">
-                <p class="buttonText" >GO BACK</p>
-            </div>
+        <div id="buttonContainer" v-if="windowWidth > 415">
             <div id="right">
                 <div class="button" id="delete" @click="deleteRecipe">
                     <p class="buttonText">DELETE RECIPE</p>
@@ -14,9 +11,6 @@
             </div>
         </div>
         <div id="buttonContainer" v-else>
-            <div class="button" id="back" @click="goBack">
-                <p class="buttonText">BACK</p>
-            </div>
             <div class="button" id="delete" @click="deleteRecipe">
                 <p class="buttonText">DELETE</p>
             </div>
@@ -124,9 +118,6 @@
             goToEditRecipe() {
                 this.$router.push('/editrecipe');
             },
-            goBack() {
-                this.$router.back();
-            },
             setContainersRelative() {
                 this.windowWidth = window.innerWidth;
                 if (window.innerWidth > 885){
@@ -162,11 +153,6 @@
 </script>
 
 <style scoped>
-    #back {
-        position:absolute;
-        left:10px;
-    }
-
     #buttonContainer {
         display:flex;
         position:relative;
@@ -327,22 +313,6 @@
     }
 }
 
-@media only screen and (max-width: 515px) {
-    #back {
-        position:relative;
-        left:auto;
-    }
-    #back, #edit, #delete {
-        margin: 10px auto 10px auto;
-    }
-    .button {
-        width: 90px;
-    }
-    #recipeNameContainer {
-        margin: 0 auto 10px auto;
-    }
-}
-
 @media only screen and (max-width:415px){
     ul{
         columns: 1;
@@ -353,13 +323,24 @@
     ul:before {
         display:none;
     }
+
     #instructionsContainer{
         margin-bottom:20px;
     }
+
     li:before {
         left: 30%;
     }
+
+    #edit, #delete {
+        margin: 10px auto 10px auto;
+    }
+
+    #recipeNameContainer {
+        margin: 0 auto 10px auto;
+    }
 }
+
 @media screen and (max-width:360px){
     li:before {
         left: 26%;

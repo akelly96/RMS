@@ -133,27 +133,34 @@ export default new Vuex.Store({
       }
     },
     async deleteIngredients({dispatch, state}, ingredientIds) {
-      let attempt = true;
-      while (attempt) {
-        try {
-          await Axios.delete(`${baseURL}Ingredients`, ingredientIds, {headers: {Authorization: `Bearer ${state.token}`}});
-          attempt = false;
-          return true;
-        } catch (error) {
-          if (error.response.status === 401) {
-            console.log("Invalid token. Refreshing...");
-            let success = await dispatch('refreshToken');
-            if (!success) {
-              attempt = false;
-              Router.replace("/");
-            }
-          } else {
-            console.log(error);
-            dispatch('displaySuccessErrorMessage', {message: 'Failed To Delete Ingredients', success: false});
+      let errors = false;
+      ingredientIds.forEach(async id => {
+        let attempt = true;
+        while (attempt) {
+          try {
+            await Axios.delete(`${baseURL}Ingredients?id=${id}`, {headers: {Authorization: `Bearer ${state.token}`}});
             attempt = false;
-            return false;
+          } catch (error) {
+            if (error.response.status === 401) {
+              console.log("Invalid token. Refreshing...");
+              let success = await dispatch('refreshToken');
+              if (!success) {
+                attempt = false;
+                Router.replace("/");
+              }
+            } else {
+              console.log(error);
+              dispatch('displaySuccessErrorMessage', {message: 'Failed To Delete Ingredients', success: false});
+              attempt = false;
+              errors = true;
+            }
           }
         }
+      });
+      if (!errors) {
+        return true;
+      } else {
+        return false;
       }
     },
     async deleteRecipe({commit, dispatch, state}, id) {
@@ -467,6 +474,7 @@ export default new Vuex.Store({
       state.reverseAlphabeticalRecipeList = {};
       state.selectedRecipe = {};
       state.fullRecipes = [];
+      state.selectedOption = 'Category';
     },
     SET_SELECTED_OPTION(state, selectedOption) {
       state.selectedOption = selectedOption;
