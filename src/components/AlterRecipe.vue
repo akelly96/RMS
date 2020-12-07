@@ -283,8 +283,6 @@ export default {
             .then(response => {
                 console.log(response.data);
                 this.fullRecipe.imageURL = "";
-                this.image = "";
-                this.imageHeight = -1;
             })
             .catch (error => {
                 console.log(error);
@@ -367,7 +365,8 @@ export default {
             this.validateIngredients();
         },
         removeImage() {
-            this.image = '';
+            this.image = "";
+            this.imageHeight = -1;
         }, 
         async saveChanges() {
             let spinner = document.getElementById("spinner");
@@ -375,7 +374,7 @@ export default {
             spinner.style.display = "block";
             if (this.page == "ADD"){
                 if (this.image != "") {
-                    this.saveImage();
+                    await this.saveImage();
                 }
                 success = await this.$store.dispatch("addRecipe", this.fullRecipe);
                 spinner.style.display = "none";
@@ -414,14 +413,14 @@ export default {
                         this.updatedIngredients = [];
                         this.deletedIngredients = [];                   
                     }
-
                     if (this.image == "" && this.image != this.originalImage){
                         await this.deleteImage();
+                        this.originalImage = "";
                     } else if (this.image != "" && this.image != this.originalImage) {
                         if (this.originalImage != "") {
                             await this.deleteImage();
                         }
-                        this.saveImage();
+                        await this.saveImage();
                     }
                     success = await this.$store.dispatch('updateRecipe', JSON.parse(JSON.stringify(this.fullRecipe)));
                     if (success && ingredientSuccess && updateIngredientSuccess && deleteIngredientSuccess) {
@@ -432,7 +431,7 @@ export default {
             }
             spinner.style.display = "none";
         },
-        saveImage() {
+        async saveImage() {
             let formData = new FormData();
             formData.append("file", this.image);
             formData.append("upload_preset", "default-preset");
@@ -441,7 +440,7 @@ export default {
                 method: "POST",
                 data: formData
             }
-            Axios(requestObj)
+            await Axios(requestObj)
             .then((result) => {
                 this.fullRecipe.imageURL = this.image = this.originalImage = result.data.secure_url.toString();
                 this.imageHeight = this.image.clientHeight;

@@ -23,7 +23,7 @@
                 <p id="recipeName">{{selectedRecipe.recipeName}}</p>
             </div>
             <div>
-                <div id="imageContainer">
+                <div id="imageContainer" class="croppedImage">
                     <img :src=selectedRecipe.imageURL id="image" v-if="selectedRecipe.imageURL != ''"/>
                     <img :src=getImage id="image" v-else />
                 </div>
@@ -126,15 +126,24 @@
                     this.containersRelative = true;
                 }
             },
+            addImageEventListener(){
+                let image = document.getElementById("image");
+                image.addEventListener("load", this.setImageSize);
+            },
+            removeImageEventListener() {
+                let image = document.getElementById("image");
+                image.removeEventListener("load", this.setImageSize);
+            },
             setImageSize() {
                 let imageContainer = document.getElementById("imageContainer");
                 let image = document.getElementById("image");
-                if (imageContainer.clientHeight > image.clientHeight + 20) {
+                if (imageContainer.clientHeight > image.height + 20) {
                     image.id = "smallImage";
                 }
             }
         },
         beforeMount() {
+            window.scroll(0,0);
             if (this.loggedIn){
                 this.setContainersRelative();
                 window.addEventListener("resize", this.setContainersRelative);
@@ -144,9 +153,10 @@
             }
         },
         mounted() {
-            this.setImageSize();
+            this.addImageEventListener();
         },
         beforeDestroy() {
+            this.removeImageEventListener();
             window.removeEventListener("resize", this.setContainersRelative);
         }
     }

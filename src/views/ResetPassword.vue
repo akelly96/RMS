@@ -92,6 +92,7 @@ export default {
         element.placeholder = " Required Field";
       } else {
         element.classList.remove("invalidInput");
+        this.validatePasswordMatch();
       }
     },
     validatePasswordMatch() {
